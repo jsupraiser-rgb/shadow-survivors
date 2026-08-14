@@ -25,37 +25,63 @@ const sprites = {
 function loadSprites(callback) {
   sprites.kael = new Image();
   sprites.leech = new Image();
+  let pending = 2;
+
+  function oneDone() {
+    pending--;
+    if (pending <= 0 && callback) callback();
+  }
+
+  function stripWhite(img, cb) {
+    try {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      const data = g.getImageData(0, 0, c.width, c.height);
+      const d = data.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], gv = d[i+1], b = d[i+2];
+        if (r > 225 && gv > 225 && b > 225) d[i+3] = 0;
+        else if (r > 195 && gv > 195 && b > 195 && Math.abs(r-gv) < 15 && Math.abs(gv-b) < 15) d[i+3] = 0;
+      }
+      g.putImageData(data, 0, 0);
+      const out = new Image();
+      out.onload = () => cb(out);
+      out.src = c.toDataURL('image/png');
+    } catch (e) {
+      console.warn('strip failed', e);
+      cb(img);
+    }
+  }
 
   sprites.kael.onload = function() {
-    KAEL_FW = Math.floor(sprites.kael.naturalWidth / 10) || 77;
-    KAEL_FH = sprites.kael.naturalHeight || 318;
-    console.log('Kael OK', KAEL_FW, KAEL_FH, sprites.kael.naturalWidth);
-    sprites.loaded++;
-    if (sprites.loaded >= sprites.total && callback) callback();
+    stripWhite(sprites.kael, function(cleaned) {
+      sprites.kael = cleaned;
+      KAEL_FW = Math.floor(cleaned.naturalWidth / 10) || 77;
+      KAEL_FH = cleaned.naturalHeight || 318;
+      console.log('Kael OK', KAEL_FW, 'x', KAEL_FH);
+      oneDone();
+    });
   };
-  sprites.kael.onerror = function() {
-    console.warn('Kael FAILED');
-    sprites.loaded++;
-    if (sprites.loaded >= sprites.total && callback) callback();
-  };
+  sprites.kael.onerror = function() { console.warn('Kael FAIL'); oneDone(); };
 
   sprites.leech.onload = function() {
     LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5) || 64;
     LEECH_FH = sprites.leech.naturalHeight || 64;
     console.log('Leech OK', LEECH_FW, LEECH_FH);
-    sprites.loaded++;
-    if (sprites.loaded >= sprites.total && callback) callback();
+    oneDone();
   };
-  sprites.leech.onerror = function() {
-    console.warn('Leech FAILED');
-    sprites.loaded++;
-    if (sprites.loaded >= sprites.total && callback) callback();
-  };
+  sprites.leech.onerror = function() { console.warn('Leech FAIL'); oneDone(); };
 
-  // Exact filenames that exist on your site
   sprites.kael.src = 'kael_sheet.png';
   sprites.leech.src = 'leech_sheet.png';
 }
+
+
+
+
 
 // Frame sizes auto-detected from sheet after load
 // Kael: 6 frames  |  Leech: 5 frames
