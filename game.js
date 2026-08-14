@@ -161,15 +161,15 @@ function getCurrentAttackDamage() {
 // ---------- LEVEL ----------
 const LEVEL_WIDTH = 2000;
 const platforms = [
-  { x: 0, y: 430, w: 2000, h: 50 },
-  { x: 420, y: 360, w: 120, h: 18 },
-  { x: 620, y: 310, w: 100, h: 18 },
-  { x: 980, y: 370, w: 140, h: 18 },
-  { x: 1250, y: 320, w: 110, h: 18 },
-  { x: 1550, y: 360, w: 130, h: 18 },
-  { x: 1780, y: 390, w: 160, h: 20 }
+  { x: 0, y: 340, w: 2000, h: 50 },
+  { x: 420, y: 270, w: 120, h: 18 },
+  { x: 620, y: 220, w: 100, h: 18 },
+  { x: 980, y: 280, w: 140, h: 18 },
+  { x: 1250, y: 230, w: 110, h: 18 },
+  { x: 1550, y: 270, w: 130, h: 18 },
+  { x: 1780, y: 300, w: 160, h: 20 }
 ];
-const exitGate = { x: 1860, y: 320, w: 50, h: 70 };
+const exitGate = { x: 1860, y: 230, w: 50, h: 70 };
 
 let enemies = [];
 let particles = [];
@@ -197,7 +197,7 @@ function setupLevel1() {
   cameraX = 0;
 
   player.x = 100;
-  player.y = 320;
+  player.y = 240;
   player.vx = 0;
   player.vy = 0;
   player.hp = 100;
@@ -207,20 +207,20 @@ function setupLevel1() {
   player.invuln = 0;
   player.animFrame = 0;
 
-  enemies.push(createLeech(380, 400));
-  enemies.push(createLeech(460, 400));
-  enemies.push(createLeech(700, 400));
-  enemies.push(createLeech(780, 280));
-  enemies.push(createLeech(860, 400));
-  enemies.push(createLeech(1100, 400));
-  enemies.push(createLeech(1180, 400));
-  enemies.push(createLeech(1300, 290));
-  enemies.push(createLeech(1380, 400));
-  enemies.push(createLeech(1600, 400));
-  enemies.push(createLeech(1680, 400));
-  enemies.push(createLeech(1750, 400));
-  enemies.push(createLeech(1620, 330));
-  enemies.push(createLeech(1700, 330));
+  enemies.push(createLeech(380, 300));
+  enemies.push(createLeech(460, 300));
+  enemies.push(createLeech(700, 300));
+  enemies.push(createLeech(780, 190));
+  enemies.push(createLeech(860, 300));
+  enemies.push(createLeech(1100, 300));
+  enemies.push(createLeech(1180, 300));
+  enemies.push(createLeech(1300, 200));
+  enemies.push(createLeech(1380, 300));
+  enemies.push(createLeech(1600, 300));
+  enemies.push(createLeech(1680, 300));
+  enemies.push(createLeech(1750, 300));
+  enemies.push(createLeech(1620, 240));
+  enemies.push(createLeech(1700, 240));
 
   document.getElementById('hp').textContent = 100;
   document.getElementById('kills').textContent = 0;
@@ -379,7 +379,7 @@ function update() {
   if (player.x > LEVEL_WIDTH - player.w) player.x = LEVEL_WIDTH - player.w;
   if (player.y > canvas.height + 80) {
     player.hp -= 20;
-    player.x = 120; player.y = 300; player.vy = 0;
+    player.x = 120; player.y = 220; player.vy = 0;
     if (player.hp <= 0) return gameOver();
   }
 
@@ -511,8 +511,8 @@ function drawKael(x, y) {
   const sy = 0;
 
   // Full body, large, feet on ground
-  const drawW = 100;
-  const drawH = 120;
+  const drawW = 110;
+  const drawH = 135;
   const drawX = x + (player.w - drawW) / 2;
   const drawY = y + player.h - drawH + 4;
 
