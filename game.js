@@ -23,44 +23,43 @@ const sprites = {
 };
 
 function loadSprites(callback) {
-  function done() {
-    detectFrameSizes();
-    if (callback) callback();
-  }
-
-  // Try multiple possible filenames (GitHub is case-sensitive)
-  const kaelNames = ['kael_sheet.png', 'Kael_sheet.png', 'Kael_Sheet.png', 'kael.png'];
-  const leechNames = ['leech_sheet.png', 'Leech_sheet.png', 'leech.png', 'Leech_Sheet.png'];
-
-  function tryLoad(img, names, label, next) {
-    let i = 0;
-    function attempt() {
-      if (i >= names.length) {
-        console.warn(label + ' failed all names');
-        sprites.loaded++;
-        if (sprites.loaded >= sprites.total) done();
-        return;
-      }
-      img.onload = () => {
-        console.log(label + ' loaded from', names[i]);
-        sprites.loaded++;
-        if (sprites.loaded >= sprites.total) done();
-      };
-      img.onerror = () => { i++; attempt(); };
-      img.src = names[i];
-    }
-    attempt();
-  }
-
   sprites.kael = new Image();
   sprites.leech = new Image();
-  tryLoad(sprites.kael, kaelNames, 'Kael', done);
-  tryLoad(sprites.leech, leechNames, 'Leech', done);
+
+  sprites.kael.onload = function() {
+    KAEL_FW = Math.floor(sprites.kael.naturalWidth / 10) || 77;
+    KAEL_FH = sprites.kael.naturalHeight || 318;
+    console.log('Kael OK', KAEL_FW, KAEL_FH, sprites.kael.naturalWidth);
+    sprites.loaded++;
+    if (sprites.loaded >= sprites.total && callback) callback();
+  };
+  sprites.kael.onerror = function() {
+    console.warn('Kael FAILED');
+    sprites.loaded++;
+    if (sprites.loaded >= sprites.total && callback) callback();
+  };
+
+  sprites.leech.onload = function() {
+    LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5) || 64;
+    LEECH_FH = sprites.leech.naturalHeight || 64;
+    console.log('Leech OK', LEECH_FW, LEECH_FH);
+    sprites.loaded++;
+    if (sprites.loaded >= sprites.total && callback) callback();
+  };
+  sprites.leech.onerror = function() {
+    console.warn('Leech FAILED');
+    sprites.loaded++;
+    if (sprites.loaded >= sprites.total && callback) callback();
+  };
+
+  // Exact filenames that exist on your site
+  sprites.kael.src = 'kael_sheet.png';
+  sprites.leech.src = 'leech_sheet.png';
 }
 
 // Frame sizes auto-detected from sheet after load
 // Kael: 6 frames  |  Leech: 5 frames
-let KAEL_FW = 128, KAEL_FH = 219;  // live sheet is 768x219
+let KAEL_FW = 77, KAEL_FH = 318;  // 10-frame sheet
 let LEECH_FW = 64, LEECH_FH = 64;
 
 function detectFrameSizes() {
@@ -146,13 +145,13 @@ function registerAttack(type) {
   if (type === 4) {
     player.attackTimer = ATTACKS.heavy.duration;
     player.comboCount = 0;
-    player.animFrame = 4;
+    player.animFrame = 8;
   } else {
     player.comboCount = Math.min(player.comboCount + 1, 3);
     player.comboTimer = COMBO_WINDOW;
-    if (type === 1) { player.attackTimer = ATTACKS.jab.duration; player.animFrame = 1; }
-    else if (type === 2) { player.attackTimer = ATTACKS.cross.duration; player.animFrame = 2; }
-    else { player.attackTimer = ATTACKS.spinKick.duration; player.animFrame = 3; }
+    if (type === 1) { player.attackTimer = ATTACKS.jab.duration; player.animFrame = 5; }
+    else if (type === 2) { player.attackTimer = ATTACKS.cross.duration; player.animFrame = 6; }
+    else { player.attackTimer = ATTACKS.spinKick.duration; player.animFrame = 7; }
   }
 
   updateComboUI();
@@ -407,7 +406,20 @@ function update() {
     player.attackTimer--;
   } else {
     player.attacking = false;
-    player.animFrame = 0;
+  }
+
+  // Animation state (10-frame sheet)
+  // 0 Idle | 1 Run1 | 2 Run2 | 3 Jump | 4 JumpAtk | 5 Jab | 6 Cross | 7 SpinKick | 8 Heavy | 9 Hurt
+  if (player.invuln > 20) {
+    player.animFrame = 9; // Hurt
+  } else if (player.attacking) {
+    // attack frames set in registerAttack
+  } else if (!player.onGround) {
+    player.animFrame = 3; // Jump
+  } else if (Math.abs(player.vx) > 0.8) {
+    player.animFrame = (Math.floor(performance.now() / 100) % 2 === 0) ? 1 : 2; // Run cycle
+  } else {
+    player.animFrame = 0; // Idle
   }
 
   if (player.comboTimer > 0) {
@@ -485,7 +497,7 @@ function update() {
         player.y < e.y + e.h && player.y + player.h > e.y) {
       player.hp -= 9;
       player.invuln = 35;
-      player.animFrame = 5;
+      player.animFrame = 9;
       spawnParticles(player.x + 20, player.y + 28, '#ff5555', 8, 'hit');
       if (player.hp <= 0) return gameOver();
     }
@@ -520,21 +532,25 @@ function update() {
 
 // ---------- DRAW ----------
 function drawKael(x, y) {
-  if (!sprites.kael || !sprites.kael.complete || sprites.kael.naturalWidth === 0) {
+  if (!sprites.kael || sprites.kael.naturalWidth < 10) {
     ctx.fillStyle = '#9b6dff';
     ctx.fillRect(x, y, player.w, player.h);
     return;
   }
 
-  const frame = Math.max(0, Math.min(5, player.animFrame));
-  const sx = frame * KAEL_FW;
+  const frame = Math.max(0, Math.min(9, player.animFrame));
+  // Small inset to avoid next-frame leg bleed
+  const pad = 3;
+  const sx = frame * KAEL_FW + pad;
   const sy = 0;
+  const sw = KAEL_FW - pad * 2;
+  const sh = KAEL_FH;
 
   // Full body, large, feet on ground
-  const drawW = 110;
-  const drawH = 135;
+  const drawW = 100;
+  const drawH = 130;
   const drawX = x + (player.w - drawW) / 2;
-  const drawY = y + player.h - drawH + 4;
+  const drawY = y + player.h - drawH + 2;
 
   ctx.save();
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
@@ -542,15 +558,15 @@ function drawKael(x, y) {
   if (player.facing < 0) {
     ctx.translate(drawX + drawW, drawY);
     ctx.scale(-1, 1);
-    ctx.drawImage(sprites.kael, sx, sy, KAEL_FW, KAEL_FH, 0, 0, drawW, drawH);
+    ctx.drawImage(sprites.kael, sx, sy, sw, sh, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(sprites.kael, sx, sy, KAEL_FW, KAEL_FH, drawX, drawY, drawW, drawH);
+    ctx.drawImage(sprites.kael, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
 
 function drawLeech(e) {
-  if (!sprites.leech || !sprites.leech.complete || sprites.leech.naturalWidth === 0) {
+  if (!sprites.leech || sprites.leech.naturalWidth < 10) {
     ctx.fillStyle = '#6a3090';
     ctx.beginPath();
     ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
