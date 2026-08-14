@@ -162,7 +162,7 @@ let particles = [];
 
 function createLeech(x, y) {
   return {
-    x, y, w: 56, h: 50,
+    x, y, w: 64, h: 56,
     hp: 28, maxHp: 28,
     speed: 1.15 + Math.random() * 0.3,
     facing: -1,
@@ -495,15 +495,21 @@ function drawKael(x, y) {
   const frame = Math.max(0, Math.min(5, player.animFrame));
   const sx = frame * KAEL_FW;
 
+  // Draw larger than hitbox and align feet to bottom of player box
+  const drawW = 96;
+  const drawH = 110;
+  const drawX = x + (player.w - drawW) / 2;
+  const drawY = y + player.h - drawH; // feet on ground
+
   ctx.save();
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.4;
 
   if (player.facing < 0) {
-    ctx.translate(x + player.w, y);
+    ctx.translate(drawX + drawW, drawY);
     ctx.scale(-1, 1);
-    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, 0, 0, player.w, player.h);
+    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, x, y, player.w, player.h);
+    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
