@@ -27,20 +27,40 @@ function loadSprites(callback) {
     detectFrameSizes();
     if (callback) callback();
   }
-  sprites.kael = new Image();
-  sprites.kael.src = 'Kael_sheet.png';
-  sprites.kael.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
-  sprites.kael.onerror = () => { console.warn('Kael_sheet.png failed'); sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
 
+  // Try multiple possible filenames (GitHub is case-sensitive)
+  const kaelNames = ['kael_sheet.png', 'Kael_sheet.png', 'Kael_Sheet.png', 'kael.png'];
+  const leechNames = ['leech_sheet.png', 'Leech_sheet.png', 'leech.png', 'Leech_Sheet.png'];
+
+  function tryLoad(img, names, label, next) {
+    let i = 0;
+    function attempt() {
+      if (i >= names.length) {
+        console.warn(label + ' failed all names');
+        sprites.loaded++;
+        if (sprites.loaded >= sprites.total) done();
+        return;
+      }
+      img.onload = () => {
+        console.log(label + ' loaded from', names[i]);
+        sprites.loaded++;
+        if (sprites.loaded >= sprites.total) done();
+      };
+      img.onerror = () => { i++; attempt(); };
+      img.src = names[i];
+    }
+    attempt();
+  }
+
+  sprites.kael = new Image();
   sprites.leech = new Image();
-  sprites.leech.src = 'leech_sheet.png';
-  sprites.leech.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
-  sprites.leech.onerror = () => { console.warn('leech_sheet.png failed'); sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
+  tryLoad(sprites.kael, kaelNames, 'Kael', done);
+  tryLoad(sprites.leech, leechNames, 'Leech', done);
 }
 
 // Frame sizes auto-detected from sheet after load
 // Kael: 6 frames  |  Leech: 5 frames
-let KAEL_FW = 128, KAEL_FH = 128;
+let KAEL_FW = 128, KAEL_FH = 219;  // live sheet is 768x219
 let LEECH_FW = 64, LEECH_FH = 64;
 
 function detectFrameSizes() {
