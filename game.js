@@ -23,24 +23,38 @@ const sprites = {
 };
 
 function loadSprites(callback) {
+  function done() {
+    detectFrameSizes();
+    if (callback) callback();
+  }
   sprites.kael = new Image();
-  sprites.kael.src = 'kael_sheet.png';
-  sprites.kael.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
-  sprites.kael.onerror = () => { console.warn('kael_sheet.png failed to load'); sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+  sprites.kael.src = 'Kael_sheet.png';
+  sprites.kael.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
+  sprites.kael.onerror = () => { console.warn('Kael_sheet.png failed'); sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
 
   sprites.leech = new Image();
   sprites.leech.src = 'leech_sheet.png';
-  sprites.leech.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
-  sprites.leech.onerror = () => { console.warn('leech_sheet.png failed to load'); sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+  sprites.leech.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
+  sprites.leech.onerror = () => { console.warn('leech_sheet.png failed'); sprites.loaded++; if (sprites.loaded >= sprites.total) done(); };
 }
 
-// Kael sheet: 768x128 → 6 frames of 128x128
-// 0:Idle  1:Jab  2:Cross  3:SpinKick  4:Heavy  5:Hurt
-const KAEL_FW = 128, KAEL_FH = 128;
+// Frame sizes auto-detected from sheet after load
+// Kael: 6 frames  |  Leech: 5 frames
+let KAEL_FW = 128, KAEL_FH = 128;
+let LEECH_FW = 64, LEECH_FH = 64;
 
-// Leech sheet: 320x64 → 5 frames of 64x64
-// 0:Idle  1:Move  2:Attack  3:Hurt  4:Death
-const LEECH_FW = 64, LEECH_FH = 64;
+function detectFrameSizes() {
+  if (sprites.kael && sprites.kael.naturalWidth > 0) {
+    KAEL_FW = Math.floor(sprites.kael.naturalWidth / 6);
+    KAEL_FH = sprites.kael.naturalHeight;
+    console.log('Kael frame:', KAEL_FW, 'x', KAEL_FH);
+  }
+  if (sprites.leech && sprites.leech.naturalWidth > 0) {
+    LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5);
+    LEECH_FH = sprites.leech.naturalHeight;
+    console.log('Leech frame:', LEECH_FW, 'x', LEECH_FH);
+  }
+}
 
 // ---------- STATE ----------
 let gameRunning = false;
@@ -51,7 +65,7 @@ let levelComplete = false;
 
 // ---------- PLAYER (Kael) ----------
 const player = {
-  x: 120, y: 0, w: 80, h: 92,
+  x: 120, y: 0, w: 70, h: 100,
   vx: 0, vy: 0,
   speed: 4.4,
   jumpForce: -11.8,
@@ -162,7 +176,7 @@ let particles = [];
 
 function createLeech(x, y) {
   return {
-    x, y, w: 64, h: 56,
+    x, y, w: 72, h: 64,
     hp: 28, maxHp: 28,
     speed: 1.15 + Math.random() * 0.3,
     facing: -1,
@@ -494,31 +508,32 @@ function drawKael(x, y) {
 
   const frame = Math.max(0, Math.min(5, player.animFrame));
   const sx = frame * KAEL_FW;
+  const sy = 0;
 
-  // Draw larger than hitbox and align feet to bottom of player box
-  const drawW = 96;
-  const drawH = 110;
+  // Full body, large, feet on ground
+  const drawW = 100;
+  const drawH = 120;
   const drawX = x + (player.w - drawW) / 2;
-  const drawY = y + player.h - drawH; // feet on ground
+  const drawY = y + player.h - drawH + 4;
 
   ctx.save();
-  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.4;
+  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
 
   if (player.facing < 0) {
     ctx.translate(drawX + drawW, drawY);
     ctx.scale(-1, 1);
-    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, 0, 0, drawW, drawH);
+    ctx.drawImage(sprites.kael, sx, sy, KAEL_FW, KAEL_FH, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, drawX, drawY, drawW, drawH);
+    ctx.drawImage(sprites.kael, sx, sy, KAEL_FW, KAEL_FH, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
 
 function drawLeech(e) {
   if (!sprites.leech || !sprites.leech.complete || sprites.leech.naturalWidth === 0) {
-    ctx.fillStyle = '#4a2060';
+    ctx.fillStyle = '#6a3090';
     ctx.beginPath();
-    ctx.ellipse(e.x + e.w / 2, e.y + e.h / 2, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
     ctx.fill();
     return;
   }
@@ -526,13 +541,19 @@ function drawLeech(e) {
   const frame = Math.max(0, Math.min(4, e.animFrame));
   const sx = frame * LEECH_FW;
 
+  // Bigger leech on screen
+  const dw = 80;
+  const dh = 70;
+  const dx = e.x + (e.w - dw) / 2;
+  const dy = e.y + e.h - dh;
+
   ctx.save();
   if (e.facing < 0) {
-    ctx.translate(e.x + e.w, e.y);
+    ctx.translate(dx + dw, dy);
     ctx.scale(-1, 1);
-    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, 0, 0, e.w, e.h);
+    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, 0, 0, dw, dh);
   } else {
-    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, e.x, e.y, e.w, e.h);
+    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, dx, dy, dw, dh);
   }
   ctx.restore();
 }
