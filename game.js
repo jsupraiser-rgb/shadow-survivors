@@ -1,6 +1,6 @@
 // =====================================================
 // Shadow Survivors - Level 1: Dust of Champions
-// Kael bare-hand combat + Void Leeches
+// Real sprites: Kael + Void Leech
 // =====================================================
 
 const canvas = document.getElementById('game');
@@ -14,6 +14,34 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// ---------- SPRITES ----------
+const sprites = {
+  kael: null,
+  leech: null,
+  loaded: 0,
+  total: 2
+};
+
+function loadSprites(callback) {
+  sprites.kael = new Image();
+  sprites.kael.src = 'kael_sheet.png';
+  sprites.kael.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+  sprites.kael.onerror = () => { console.warn('kael_sheet.png failed to load'); sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+
+  sprites.leech = new Image();
+  sprites.leech.src = 'leech_sheet.png';
+  sprites.leech.onload = () => { sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+  sprites.leech.onerror = () => { console.warn('leech_sheet.png failed to load'); sprites.loaded++; if (sprites.loaded >= sprites.total && callback) callback(); };
+}
+
+// Kael sheet: 768x128 → 6 frames of 128x128
+// 0:Idle  1:Jab  2:Cross  3:SpinKick  4:Heavy  5:Hurt
+const KAEL_FW = 128, KAEL_FH = 128;
+
+// Leech sheet: 320x64 → 5 frames of 64x64
+// 0:Idle  1:Move  2:Attack  3:Hurt  4:Death
+const LEECH_FW = 64, LEECH_FH = 64;
+
 // ---------- STATE ----------
 let gameRunning = false;
 let kills = 0;
@@ -23,7 +51,7 @@ let levelComplete = false;
 
 // ---------- PLAYER (Kael) ----------
 const player = {
-  x: 120, y: 0, w: 30, h: 44,
+  x: 120, y: 0, w: 52, h: 60,
   vx: 0, vy: 0,
   speed: 4.4,
   jumpForce: -11.8,
@@ -33,23 +61,22 @@ const player = {
   facing: 1,
   hp: 100, maxHp: 100,
   invuln: 0,
-  // Combat
   attacking: false,
   attackTimer: 0,
-  attackType: 0,       // 1=Jab, 2=Cross, 3=SpinKick, 4=Heavy
+  attackType: 0,
   comboCount: 0,
   comboTimer: 0,
   lastAttackTime: 0,
+  animFrame: 0,
   _jumpHeld: false
 };
 
-// ---------- COMBO DATA (from design) ----------
 const COMBO_WINDOW = 55;
 const ATTACKS = {
-  jab:      { damage: 8,  startup: 4,  active: 3,  recovery: 8,  hitstun: 12, range: 38, knockback: 2.2 },
-  cross:    { damage: 14, startup: 6,  active: 4,  recovery: 12, hitstun: 16, range: 46, knockback: 4.5 },
-  spinKick: { damage: 22, startup: 8,  active: 5,  recovery: 18, hitstun: 22, range: 54, knockback: 7.0 },
-  heavy:    { damage: 26, startup: 14, active: 5,  recovery: 22, hitstun: 18, range: 48, knockback: 8.5 }
+  jab:      { damage: 8,  range: 44, knockback: 2.2, duration: 14 },
+  cross:    { damage: 14, range: 52, knockback: 4.5, duration: 18 },
+  spinKick: { damage: 22, range: 60, knockback: 7.0, duration: 24 },
+  heavy:    { damage: 26, range: 54, knockback: 8.5, duration: 28 }
 };
 
 function getComboMultiplier() {
@@ -82,19 +109,20 @@ function registerAttack(type) {
   player.attacking = true;
   player.attackType = type;
 
-  if (type === 4) { // Heavy
-    player.attackTimer = ATTACKS.heavy.startup + ATTACKS.heavy.active + 5;
+  if (type === 4) {
+    player.attackTimer = ATTACKS.heavy.duration;
     player.comboCount = 0;
+    player.animFrame = 4;
   } else {
     player.comboCount = Math.min(player.comboCount + 1, 3);
     player.comboTimer = COMBO_WINDOW;
-    const atk = type === 1 ? ATTACKS.jab : type === 2 ? ATTACKS.cross : ATTACKS.spinKick;
-    player.attackTimer = atk.startup + atk.active + 4;
+    if (type === 1) { player.attackTimer = ATTACKS.jab.duration; player.animFrame = 1; }
+    else if (type === 2) { player.attackTimer = ATTACKS.cross.duration; player.animFrame = 2; }
+    else { player.attackTimer = ATTACKS.spinKick.duration; player.animFrame = 3; }
   }
 
   updateComboUI();
 
-  // Floating text
   const comboEl = document.getElementById('combo-display');
   if (player.comboCount === 3 && type === 3) {
     comboEl.textContent = '3-HIT COMBO!';
@@ -116,35 +144,33 @@ function getCurrentAttackDamage() {
   return Math.round(base * getComboMultiplier());
 }
 
-// ---------- LEVEL 1 LAYOUT ----------
+// ---------- LEVEL ----------
 const LEVEL_WIDTH = 2000;
 const platforms = [
-  { x: 0, y: 430, w: 2000, h: 50 },          // main ground
+  { x: 0, y: 430, w: 2000, h: 50 },
   { x: 420, y: 360, w: 120, h: 18 },
   { x: 620, y: 310, w: 100, h: 18 },
   { x: 980, y: 370, w: 140, h: 18 },
   { x: 1250, y: 320, w: 110, h: 18 },
   { x: 1550, y: 360, w: 130, h: 18 },
-  { x: 1780, y: 390, w: 160, h: 20 }         // exit platform
+  { x: 1780, y: 390, w: 160, h: 20 }
 ];
-
 const exitGate = { x: 1860, y: 320, w: 50, h: 70 };
 
-// ---------- ENEMIES (Void Leeches) ----------
 let enemies = [];
 let particles = [];
-let spawnPlan = [];
 
 function createLeech(x, y) {
   return {
-    x, y, w: 28, h: 22,
+    x, y, w: 42, h: 38,
     hp: 28, maxHp: 28,
     speed: 1.15 + Math.random() * 0.3,
     facing: -1,
-    state: 'crawl',      // crawl | lunge | hurt | dead
-    lungeTimer: 0,
     hurtTimer: 0,
-    dead: false
+    animFrame: 0,
+    animTimer: 0,
+    dead: false,
+    deathTimer: 0
   };
 }
 
@@ -157,7 +183,7 @@ function setupLevel1() {
   cameraX = 0;
 
   player.x = 100;
-  player.y = 350;
+  player.y = 340;
   player.vx = 0;
   player.vy = 0;
   player.hp = 100;
@@ -165,24 +191,17 @@ function setupLevel1() {
   player.comboCount = 0;
   player.attacking = false;
   player.invuln = 0;
+  player.animFrame = 0;
 
-  // Zone spawns
-  // Zone 1
   enemies.push(createLeech(380, 400));
   enemies.push(createLeech(460, 400));
-
-  // Zone 2
   enemies.push(createLeech(700, 400));
   enemies.push(createLeech(780, 280));
   enemies.push(createLeech(860, 400));
-
-  // Zone 3
   enemies.push(createLeech(1100, 400));
   enemies.push(createLeech(1180, 400));
   enemies.push(createLeech(1300, 290));
   enemies.push(createLeech(1380, 400));
-
-  // Zone 4 final wave
   enemies.push(createLeech(1600, 400));
   enemies.push(createLeech(1680, 400));
   enemies.push(createLeech(1750, 400));
@@ -195,7 +214,6 @@ function setupLevel1() {
   updateComboUI();
 }
 
-// ---------- PARTICLES ----------
 function spawnParticles(x, y, color, n = 8, type = 'hit') {
   for (let i = 0; i < n; i++) {
     let vx, vy, size, life, gravity = 0;
@@ -210,11 +228,6 @@ function spawnParticles(x, y, color, n = 8, type = 'hit') {
       size = 3.5 + Math.random() * 4;
       life = 18 + Math.random() * 14;
       gravity = 0.18;
-    } else if (type === 'slash') {
-      vx = (Math.random() - 0.5) * 5 + player.facing * 5;
-      vy = (Math.random() - 0.5) * 4;
-      size = 2 + Math.random() * 2.5;
-      life = 8 + Math.random() * 7;
     } else {
       vx = (Math.random() - 0.5) * 6;
       vy = (Math.random() - 0.5) * 6;
@@ -231,7 +244,7 @@ let joyDX = 0, joyActive = false;
 
 window.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
-  if (['z', 'j', 'k'].includes(e.key.toLowerCase())) tryAttack();
+  if (['z', 'j'].includes(e.key.toLowerCase())) tryAttack();
   if (e.key.toLowerCase() === 'x') tryHeavy();
 });
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
@@ -276,12 +289,9 @@ function setupJoystick() {
 
 function tryAttack() {
   if (player.attackTimer > 6) return;
-
-  // Determine next step in combo
-  let type = 1; // Jab
-  if (player.comboCount === 1 && player.comboTimer > 0) type = 2; // Cross
-  else if (player.comboCount === 2 && player.comboTimer > 0) type = 3; // Spin Kick
-
+  let type = 1;
+  if (player.comboCount === 1 && player.comboTimer > 0) type = 2;
+  else if (player.comboCount === 2 && player.comboTimer > 0) type = 3;
   registerAttack(type);
 }
 
@@ -299,7 +309,7 @@ function tryJump() {
   } else {
     player.vy = player.doubleJumpForce;
     player.jumpsLeft = 0;
-    spawnParticles(player.x + player.w / 2, player.y + player.h, '#a070ff', 7, 'slash');
+    spawnParticles(player.x + player.w / 2, player.y + player.h, '#a070ff', 7, 'hit');
   }
   player.onGround = false;
 }
@@ -315,7 +325,6 @@ document.getElementById('special-btn').addEventListener('mousedown', tryHeavy);
 function update() {
   if (!gameRunning || levelComplete) return;
 
-  // Movement
   let move = 0;
   if (keys['a'] || keys['arrowleft']) move = -1;
   if (keys['d'] || keys['arrowright']) move = 1;
@@ -328,24 +337,18 @@ function update() {
     player.vx *= 0.78;
   }
 
-  // Jump (keyboard)
   if (keys['w'] || keys['arrowup'] || keys[' ']) {
-    if (!player._jumpHeld) {
-      tryJump();
-      player._jumpHeld = true;
-    }
+    if (!player._jumpHeld) { tryJump(); player._jumpHeld = true; }
   } else {
     player._jumpHeld = false;
   }
 
-  // Gravity
   player.vy += 0.55;
   if (player.vy > 14) player.vy = 14;
 
   player.x += player.vx;
   player.y += player.vy;
 
-  // Ground collision
   player.onGround = false;
   for (const p of platforms) {
     if (player.x + player.w > p.x && player.x < p.x + p.w &&
@@ -358,20 +361,20 @@ function update() {
     }
   }
 
-  // Bounds
   if (player.x < 0) player.x = 0;
   if (player.x > LEVEL_WIDTH - player.w) player.x = LEVEL_WIDTH - player.w;
   if (player.y > canvas.height + 80) {
     player.hp -= 20;
-    player.x = 120;
-    player.y = 300;
-    player.vy = 0;
+    player.x = 120; player.y = 300; player.vy = 0;
     if (player.hp <= 0) return gameOver();
   }
 
-  // Timers
-  if (player.attackTimer > 0) player.attackTimer--;
-  else player.attacking = false;
+  if (player.attackTimer > 0) {
+    player.attackTimer--;
+  } else {
+    player.attacking = false;
+    player.animFrame = 0;
+  }
 
   if (player.comboTimer > 0) {
     player.comboTimer--;
@@ -382,32 +385,35 @@ function update() {
   }
   if (player.invuln > 0) player.invuln--;
 
-  // Camera
   cameraX = player.x - canvas.width * 0.35;
   if (cameraX < 0) cameraX = 0;
   if (cameraX > LEVEL_WIDTH - canvas.width) cameraX = Math.max(0, LEVEL_WIDTH - canvas.width);
 
-  // ----- Enemies -----
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
-    if (e.dead) continue;
+    if (e.dead) {
+      e.deathTimer++;
+      e.animFrame = 4;
+      if (e.deathTimer > 28) enemies.splice(i, 1);
+      continue;
+    }
 
-    // AI
     const dx = player.x - e.x;
     e.facing = dx > 0 ? 1 : -1;
 
     if (e.hurtTimer > 0) {
       e.hurtTimer--;
+      e.animFrame = 3;
     } else {
       e.x += e.facing * e.speed;
-
-      // Simple lunge
-      if (Math.abs(dx) < 70 && Math.random() < 0.008) {
-        e.x += e.facing * 18;
+      e.animTimer++;
+      e.animFrame = (e.animTimer % 20 < 10) ? 0 : 1;
+      if (Math.abs(dx) < 70 && Math.random() < 0.01) {
+        e.x += e.facing * 16;
+        e.animFrame = 2;
       }
     }
 
-    // Gravity for leeches
     e.y += 5;
     for (const p of platforms) {
       if (e.x + e.w > p.x && e.x < p.x + p.w &&
@@ -416,29 +422,23 @@ function update() {
       }
     }
 
-    // Player attack hit
     if (player.attacking && player.attackTimer > 4) {
       const atk = player.attackType === 1 ? ATTACKS.jab :
                   player.attackType === 2 ? ATTACKS.cross :
                   player.attackType === 3 ? ATTACKS.spinKick : ATTACKS.heavy;
-      const sx = player.facing > 0 ? player.x + player.w - 8 : player.x - atk.range + 8;
-      const sw = atk.range;
-
-      if (sx < e.x + e.w && sx + sw > e.x &&
+      const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
+      if (sx < e.x + e.w && sx + atk.range > e.x &&
           player.y < e.y + e.h && player.y + player.h > e.y) {
-        const dmg = getCurrentAttackDamage();
-        e.hp -= dmg;
-        e.hurtTimer = 12;
+        e.hp -= getCurrentAttackDamage();
+        e.hurtTimer = 14;
         e.x += player.facing * atk.knockback * 3;
-
         spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#c9a0ff', 6, 'hit');
-        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#e0d0ff', 4, 'slash');
 
         if (e.hp <= 0) {
           e.dead = true;
+          e.deathTimer = 0;
           kills++;
-          const gain = 4 + (player.comboCount >= 3 ? 2 : 0);
-          souls += gain;
+          souls += 4 + (player.comboCount >= 3 ? 2 : 0);
           spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#a070ff', 14, 'death');
           document.getElementById('kills').textContent = kills;
           document.getElementById('souls').textContent = souls;
@@ -446,29 +446,25 @@ function update() {
       }
     }
 
-    // Touch damage
-    if (player.invuln <= 0 &&
+    if (player.invuln <= 0 && !e.dead &&
         player.x < e.x + e.w && player.x + player.w > e.x &&
         player.y < e.y + e.h && player.y + player.h > e.y) {
       player.hp -= 9;
       player.invuln = 35;
-      spawnParticles(player.x + 15, player.y + 22, '#ff5555', 8, 'hit');
+      player.animFrame = 5;
+      spawnParticles(player.x + 20, player.y + 28, '#ff5555', 8, 'hit');
       if (player.hp <= 0) return gameOver();
     }
   }
-  enemies = enemies.filter(e => !e.dead);
 
-  // Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
+    p.x += p.vx; p.y += p.vy;
     if (p.gravity) p.vy += p.gravity;
     p.life--;
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  // Exit check
   if (player.x + player.w > exitGate.x && player.x < exitGate.x + exitGate.w &&
       player.y + player.h > exitGate.y && player.y < exitGate.y + exitGate.h) {
     levelComplete = true;
@@ -489,19 +485,61 @@ function update() {
 }
 
 // ---------- DRAW ----------
+function drawKael(x, y) {
+  if (!sprites.kael || !sprites.kael.complete || sprites.kael.naturalWidth === 0) {
+    ctx.fillStyle = '#9b6dff';
+    ctx.fillRect(x, y, player.w, player.h);
+    return;
+  }
+
+  const frame = Math.max(0, Math.min(5, player.animFrame));
+  const sx = frame * KAEL_FW;
+
+  ctx.save();
+  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.4;
+
+  if (player.facing < 0) {
+    ctx.translate(x + player.w, y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, 0, 0, player.w, player.h);
+  } else {
+    ctx.drawImage(sprites.kael, sx, 0, KAEL_FW, KAEL_FH, x, y, player.w, player.h);
+  }
+  ctx.restore();
+}
+
+function drawLeech(e) {
+  if (!sprites.leech || !sprites.leech.complete || sprites.leech.naturalWidth === 0) {
+    ctx.fillStyle = '#4a2060';
+    ctx.beginPath();
+    ctx.ellipse(e.x + e.w / 2, e.y + e.h / 2, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  const frame = Math.max(0, Math.min(4, e.animFrame));
+  const sx = frame * LEECH_FW;
+
+  ctx.save();
+  if (e.facing < 0) {
+    ctx.translate(e.x + e.w, e.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, 0, 0, e.w, e.h);
+  } else {
+    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, e.x, e.y, e.w, e.h);
+  }
+  ctx.restore();
+}
+
 function draw() {
-  // Background
   ctx.fillStyle = '#0a0a14';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Simple distant ruins + purple sky glow
   ctx.fillStyle = '#12121f';
   for (let i = 0; i < 7; i++) {
     const bx = ((i * 220) - cameraX * 0.2) % (canvas.width + 250) - 120;
     ctx.fillRect(bx, 40 + (i % 3) * 35, 140, 160);
   }
-
-  // Purple rift hint
   ctx.fillStyle = 'rgba(120, 40, 180, 0.12)';
   ctx.beginPath();
   ctx.arc(canvas.width * 0.7, 60, 90, 0, Math.PI * 2);
@@ -510,100 +548,24 @@ function draw() {
   ctx.save();
   ctx.translate(-cameraX, 0);
 
-  // Platforms
   platforms.forEach(p => {
     ctx.fillStyle = '#1c1c2c';
     ctx.fillRect(p.x, p.y, p.w, p.h);
     ctx.fillStyle = '#2a2a40';
     ctx.fillRect(p.x, p.y, p.w, 5);
-    // cracks
-    ctx.strokeStyle = 'rgba(140, 60, 200, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(p.x + 10, p.y + 2);
-    ctx.lineTo(p.x + p.w - 10, p.y + 2);
-    ctx.stroke();
   });
 
-  // Exit gate
   ctx.fillStyle = '#2a1a4a';
   ctx.fillRect(exitGate.x, exitGate.y, exitGate.w, exitGate.h);
-  ctx.fillStyle = 'rgba(160, 80, 255, 0.5)';
+  ctx.fillStyle = 'rgba(160, 80, 255, 0.55)';
   ctx.fillRect(exitGate.x + 8, exitGate.y + 10, 34, 50);
   ctx.fillStyle = '#c9a0ff';
   ctx.font = '12px sans-serif';
   ctx.fillText('EXIT', exitGate.x + 10, exitGate.y - 8);
 
-  // Enemies – Void Leeches
-  enemies.forEach(e => {
-    // body
-    ctx.fillStyle = e.hurtTimer > 0 ? '#aa66cc' : '#4a2060';
-    ctx.beginPath();
-    ctx.ellipse(e.x + e.w / 2, e.y + e.h / 2, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // eye
-    ctx.fillStyle = '#cc66ff';
-    ctx.beginPath();
-    ctx.arc(e.x + e.w / 2 + e.facing * 3, e.y + e.h / 2 - 2, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#1a0a20';
-    ctx.beginPath();
-    ctx.arc(e.x + e.w / 2 + e.facing * 3, e.y + e.h / 2 - 2, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    // tentacles
-    ctx.strokeStyle = '#6a3080';
-    ctx.lineWidth = 2;
-    for (let t = 0; t < 3; t++) {
-      ctx.beginPath();
-      ctx.moveTo(e.x + 6 + t * 7, e.y + e.h - 2);
-      ctx.quadraticCurveTo(e.x + 4 + t * 7, e.y + e.h + 8, e.x + 2 + t * 8, e.y + e.h + 12);
-      ctx.stroke();
-    }
-  });
+  enemies.forEach(e => drawLeech(e));
+  drawKael(player.x, player.y);
 
-  // Player – Kael
-  ctx.save();
-  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.4;
-
-  // body
-  ctx.fillStyle = '#2a2a35';
-  ctx.fillRect(player.x + 4, player.y + 14, 22, 30); // torso
-  // head
-  ctx.fillStyle = '#d4a88c';
-  ctx.fillRect(player.x + 7, player.y, 16, 16);
-  // hair
-  ctx.fillStyle = '#1a1a22';
-  ctx.fillRect(player.x + 5, player.y - 4, 20, 10);
-  // eyes
-  ctx.fillStyle = '#c070ff';
-  ctx.fillRect(player.x + 9, player.y + 6, 4, 3);
-  ctx.fillRect(player.x + 17, player.y + 6, 4, 3);
-  // arms / energy
-  ctx.fillStyle = '#c9a0ff';
-  if (player.facing > 0) {
-    ctx.fillRect(player.x + 24, player.y + 18, 8, 6);
-  } else {
-    ctx.fillRect(player.x - 2, player.y + 18, 8, 6);
-  }
-
-  // Attack visuals
-  if (player.attacking && player.attackTimer > 3) {
-    ctx.fillStyle = player.attackType === 3 ? '#ff66ff' :
-                    player.attackType === 4 ? '#ffaa44' : '#e0d0ff';
-    const sx = player.facing > 0 ? player.x + player.w : player.x - 42;
-    const sh = player.attackType >= 3 ? 18 : 10;
-    ctx.fillRect(sx, player.y + 14, 44, sh);
-    // energy arc for spin kick
-    if (player.attackType === 3) {
-      ctx.strokeStyle = 'rgba(200, 120, 255, 0.6)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(player.x + player.w / 2, player.y + 22, 40, 0, Math.PI * 1.2);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-
-  // Particles
   particles.forEach(p => {
     const alpha = Math.max(0, p.life / (p.maxLife || 20));
     ctx.globalAlpha = alpha;
@@ -644,4 +606,5 @@ function gameOver() {
 
 setupJoystick();
 document.getElementById('start-btn').onclick = startGame;
+loadSprites(() => console.log('Sprites ready'));
 loop();
