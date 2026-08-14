@@ -51,7 +51,7 @@ let levelComplete = false;
 
 // ---------- PLAYER (Kael) ----------
 const player = {
-  x: 120, y: 0, w: 52, h: 60,
+  x: 120, y: 0, w: 80, h: 92,
   vx: 0, vy: 0,
   speed: 4.4,
   jumpForce: -11.8,
@@ -73,10 +73,10 @@ const player = {
 
 const COMBO_WINDOW = 55;
 const ATTACKS = {
-  jab:      { damage: 8,  range: 44, knockback: 2.2, duration: 14 },
-  cross:    { damage: 14, range: 52, knockback: 4.5, duration: 18 },
-  spinKick: { damage: 22, range: 60, knockback: 7.0, duration: 24 },
-  heavy:    { damage: 26, range: 54, knockback: 8.5, duration: 28 }
+  jab:      { damage: 8,  range: 55, knockback: 2.2, duration: 14 },
+  cross:    { damage: 14, range: 62, knockback: 4.5, duration: 18 },
+  spinKick: { damage: 22, range: 72, knockback: 7.0, duration: 24 },
+  heavy:    { damage: 26, range: 65, knockback: 8.5, duration: 28 }
 };
 
 function getComboMultiplier() {
@@ -162,7 +162,7 @@ let particles = [];
 
 function createLeech(x, y) {
   return {
-    x, y, w: 42, h: 38,
+    x, y, w: 56, h: 50,
     hp: 28, maxHp: 28,
     speed: 1.15 + Math.random() * 0.3,
     facing: -1,
@@ -183,7 +183,7 @@ function setupLevel1() {
   cameraX = 0;
 
   player.x = 100;
-  player.y = 340;
+  player.y = 320;
   player.vx = 0;
   player.vy = 0;
   player.hp = 100;
