@@ -59,8 +59,8 @@ function loadSprites(callback) {
   sprites.kael.onload = function() {
     stripWhite(sprites.kael, function(cleaned) {
       sprites.kael = cleaned;
-      KAEL_FW = Math.floor(cleaned.naturalWidth / 10) || 77;
-      KAEL_FH = cleaned.naturalHeight || 318;
+      KAEL_FW = Math.floor(cleaned.naturalWidth / 10) || 128;
+      KAEL_FH = cleaned.naturalHeight || 170;
       console.log('Kael OK', KAEL_FW, 'x', KAEL_FH);
       oneDone();
     });
@@ -85,21 +85,10 @@ function loadSprites(callback) {
 
 // Frame sizes auto-detected from sheet after load
 // Kael: 6 frames  |  Leech: 5 frames
-let KAEL_FW = 77, KAEL_FH = 318;  // 10-frame sheet
+let KAEL_FW = 128, KAEL_FH = 170;  // cleaned 10-frame sheet
 let LEECH_FW = 64, LEECH_FH = 64;
 
-function detectFrameSizes() {
-  if (sprites.kael && sprites.kael.naturalWidth > 0) {
-    KAEL_FW = Math.floor(sprites.kael.naturalWidth / 6);
-    KAEL_FH = sprites.kael.naturalHeight;
-    console.log('Kael frame:', KAEL_FW, 'x', KAEL_FH);
-  }
-  if (sprites.leech && sprites.leech.naturalWidth > 0) {
-    LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5);
-    LEECH_FH = sprites.leech.naturalHeight;
-    console.log('Leech frame:', LEECH_FW, 'x', LEECH_FH);
-  }
-}
+function detectFrameSizes() { /* disabled - sizes set in loadSprites */ }
 
 // ---------- STATE ----------
 let gameRunning = false;
@@ -434,18 +423,17 @@ function update() {
     player.attacking = false;
   }
 
-  // Animation state (10-frame sheet)
-  // 0 Idle | 1 Run1 | 2 Run2 | 3 Jump | 4 JumpAtk | 5 Jab | 6 Cross | 7 SpinKick | 8 Heavy | 9 Hurt
+  // 10 frames: 0 Idle|1 Run1|2 Run2|3 Jump|4 DblJump|5 Jab|6 Cross|7 Kick|8 Heavy|9 Hurt
   if (player.invuln > 20) {
-    player.animFrame = 9; // Hurt
+    player.animFrame = 9;
   } else if (player.attacking) {
-    // attack frames set in registerAttack
+    // set in registerAttack
   } else if (!player.onGround) {
-    player.animFrame = 3; // Jump
+    player.animFrame = (player.jumpsLeft <= 0) ? 4 : 3;
   } else if (Math.abs(player.vx) > 0.8) {
-    player.animFrame = (Math.floor(performance.now() / 100) % 2 === 0) ? 1 : 2; // Run cycle
+    player.animFrame = (Math.floor(performance.now() / 100) % 2 === 0) ? 1 : 2;
   } else {
-    player.animFrame = 0; // Idle
+    player.animFrame = 0;
   }
 
   if (player.comboTimer > 0) {
@@ -523,7 +511,7 @@ function update() {
         player.y < e.y + e.h && player.y + player.h > e.y) {
       player.hp -= 9;
       player.invuln = 35;
-      player.animFrame = 9;
+      player.animFrame = 7;
       spawnParticles(player.x + 20, player.y + 28, '#ff5555', 8, 'hit');
       if (player.hp <= 0) return gameOver();
     }
@@ -566,7 +554,7 @@ function drawKael(x, y) {
 
   const frame = Math.max(0, Math.min(9, player.animFrame));
   // Small inset to avoid next-frame leg bleed
-  const pad = 3;
+  const pad = 8;
   const sx = frame * KAEL_FW + pad;
   const sy = 0;
   const sw = KAEL_FW - pad * 2;
