@@ -17,56 +17,87 @@ resize();
 // ---------- HERO DATA ----------
 const HEROES = {
   kael: {
-    name: 'Kael', weapon: 'Shadow Sword', color: '#a070ff',
-    speed: 4.4, hp: 120, jumpForce: -11.8, dashSpeed: 12,
-    maxCombo: 7,
-    attacks: {
+    name: 'Kael', color: '#a070ff',
+    speed: 4.4, hp: 120, jumpForce: -11.8, dashSpeed: 12, maxCombo: 7,
+    tiers: {
+      1:  { weapon: 'Bare Fists',         mult: 0.5 },
+      5:  { weapon: 'Bronze Handwraps',   mult: 0.7 },
+      15: { weapon: 'Steel Gauntlets',    mult: 0.9 },
+      30: { weapon: 'Knight\'s Bracers', mult: 1.2 },
+      45: { weapon: 'Shadow Gauntlets',   mult: 1.5 },
+      60: { weapon: 'Eclipse Blade',      mult: 2.0 }
+    },
+    abilities: {
       1: { name: 'Shadow Slash', damage: 12, range: 65, knockback: 2.2, duration: 14, type: 'melee', frame: 5 },
-      2: { name: 'Shadow Slash', damage: 12, range: 65, knockback: 2.2, duration: 14, type: 'melee', frame: 5 },
-      3: { name: 'Shadow Slash', damage: 18, range: 75, knockback: 4.5, duration: 18, type: 'melee', frame: 6 },
-      4: { name: 'Crescent Blade', damage: 20, range: 85, knockback: 5.0, duration: 18, type: 'melee', frame: 6 },
-      5: { name: 'Crescent Blade', damage: 28, range: 90, knockback: 7.0, duration: 24, type: 'melee', frame: 7 },
-      6: { name: 'Eclipse Finisher', damage: 30, range: 90, knockback: 8.0, duration: 24, type: 'melee', frame: 7 },
-      7: { name: 'Eclipse Finisher', damage: 50, range: 100, knockback: 10.0, duration: 30, type: 'melee', frame: 7, invuln: 15 },
-      special: { name: 'Heavy Overhead Slash', damage: 45, range: 90, knockback: 8.5, duration: 30, type: 'melee', frame: 8, cooldown: 60 }
+      10: { name: 'Rising Arc', damage: 18, range: 75, knockback: 4.5, duration: 18, type: 'melee', frame: 6 },
+      20: { name: 'Whirlwind', damage: 20, range: 85, knockback: 5.0, duration: 18, type: 'melee', frame: 6 },
+      30: { name: 'Shadow Step', damage: 28, range: 90, knockback: 7.0, duration: 24, type: 'melee', frame: 7 },
+      45: { name: 'Eclipse Slash', damage: 30, range: 90, knockback: 8.0, duration: 24, type: 'melee', frame: 7 },
+      60: { name: 'Void Breaker', damage: 50, range: 100, knockback: 10.0, duration: 30, type: 'melee', frame: 7, invuln: 15 },
+      special: { name: 'Heavy Slash', damage: 45, range: 90, knockback: 8.5, duration: 30, type: 'melee', frame: 8, cooldown: 60 }
     }
   },
   lyra: {
-    name: 'Lyra', weapon: 'Assassin Blades', color: '#40ff80',
-    speed: 5.8, hp: 80, jumpForce: -12.5, dashSpeed: 16,
-    maxCombo: 5,
-    attacks: {
+    name: 'Lyra', color: '#40ff80',
+    speed: 5.8, hp: 80, jumpForce: -12.5, dashSpeed: 16, maxCombo: 5,
+    tiers: {
+      1:  { weapon: 'Bare Fists',          mult: 0.5 },
+      5:  { weapon: 'Ninja Wraps',         mult: 0.7 },
+      15: { weapon: 'Assassin Gloves',     mult: 0.9 },
+      30: { weapon: 'Void Grips',          mult: 1.2 },
+      45: { weapon: 'Shadow Claws',        mult: 1.5 },
+      60: { weapon: 'Nightreaver Daggers', mult: 2.0 }
+    },
+    abilities: {
       1: { name: 'Twin Flurry', damage: 6, range: 50, knockback: 1.0, duration: 8, type: 'melee', frame: 5 },
-      2: { name: 'Twin Flurry', damage: 6, range: 50, knockback: 1.0, duration: 8, type: 'melee', frame: 5 },
-      3: { name: 'Twin Flurry', damage: 8, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
-      4: { name: 'Cross Cut', damage: 14, range: 60, knockback: -2.0, duration: 14, type: 'melee', frame: 6 }, // Negative knockback for pull-in
-      5: { name: 'Vanish Strike', damage: 30, range: 70, knockback: 3.5, duration: 18, type: 'melee', frame: 7, teleport: 30 },
+      10: { name: 'Poison Jab', damage: 8, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
+      20: { name: 'Blink Strike', damage: 14, range: 60, knockback: -2.0, duration: 14, type: 'melee', frame: 6 }, // Negative knockback for pull-in
+      30: { name: 'Shadow Flurry', damage: 20, range: 65, knockback: 1.5, duration: 12, type: 'melee', frame: 6 },
+      45: { name: 'Umbral Execution', damage: 30, range: 70, knockback: 3.5, duration: 18, type: 'melee', frame: 7, teleport: 30 },
+      60: { name: 'Phantom Reign', damage: 45, range: 80, knockback: 5.0, duration: 24, type: 'melee', frame: 7, teleport: 60 },
       special: { name: 'Shadow Dash Attack', damage: 25, range: 40, knockback: 5.0, duration: 15, type: 'melee', dash: 12, frame: 8, cooldown: 45 }
     }
   },
   vex: {
-    name: 'Vex', weapon: 'Heavy Cleaver', color: '#ff8040',
-    speed: 3.2, hp: 200, jumpForce: -10.0, dashSpeed: 8,
-    maxCombo: 4,
-    attacks: {
+    name: 'Vex', color: '#ff8040',
+    speed: 3.2, hp: 200, jumpForce: -10.0, dashSpeed: 8, maxCombo: 4,
+    tiers: {
+      1:  { weapon: 'Bare Fists',           mult: 0.5 },
+      5:  { weapon: 'Iron Knuckle Guards',  mult: 0.7 },
+      15: { weapon: 'Reinforced Gauntlets', mult: 0.9 },
+      30: { weapon: 'Crusher Gauntlets',    mult: 1.2 },
+      45: { weapon: 'Titan Bracers',        mult: 1.5 },
+      60: { weapon: 'Doom Cleaver',         mult: 2.0 }
+    },
+    abilities: {
       1: { name: 'Crushing Blow', damage: 25, range: 75, knockback: 4.0, duration: 22, type: 'melee', frame: 5 },
-      2: { name: 'Crushing Blow', damage: 35, range: 85, knockback: 6.0, duration: 28, type: 'melee', frame: 6 },
-      3: { name: 'Quake Slash', damage: 45, range: 100, knockback: 8.0, duration: 35, type: 'melee', frame: 7, aoe: 150 }, // AOE damage
-      4: { name: 'Executioner', damage: 80, range: 110, knockback: 15.0, duration: 55, type: 'melee', frame: 8, recovery: 20 },
+      10: { name: 'Seismic Slam', damage: 35, range: 85, knockback: 6.0, duration: 28, type: 'melee', frame: 6 },
+      20: { name: 'Shockwave', damage: 45, range: 100, knockback: 8.0, duration: 35, type: 'melee', frame: 7, aoe: 150 }, // AOE damage
+      30: { name: 'Earthen Bulwark', damage: 55, range: 110, knockback: 10.0, duration: 40, type: 'melee', frame: 7 },
+      45: { name: 'Cataclysm', damage: 80, range: 110, knockback: 15.0, duration: 55, type: 'melee', frame: 8, recovery: 20 },
+      60: { name: 'Rupture Core', damage: 120, range: 150, knockback: 20.0, duration: 65, type: 'melee', frame: 8, recovery: 30, aoe: 250 },
       special: { name: 'Ground Smash', damage: 40, range: 150, knockback: 10.0, duration: 35, type: 'melee', frame: 8, aoe: 200, stun: 30, cooldown: 120 }
     }
   },
   nyx: {
-    name: 'Nyx', weapon: 'Void Gun & Blade', color: '#40c0ff',
-    speed: 4.8, hp: 100, jumpForce: -11.0, dashSpeed: 10,
-    maxCombo: 5,
-    attacks: {
+    name: 'Nyx', color: '#40c0ff',
+    speed: 4.8, hp: 100, jumpForce: -11.0, dashSpeed: 10, maxCombo: 5,
+    tiers: {
+      1:  { weapon: 'Bare Fists',       mult: 0.5 },
+      5:  { weapon: 'Energy Gauntlets', mult: 0.7 },
+      15: { weapon: 'Magitech Pistols', mult: 0.9 },
+      30: { weapon: 'Shadow Pistols',   mult: 1.2 },
+      45: { weapon: 'Void Blasters',    mult: 1.5 },
+      60: { weapon: 'Void Star Cannon', mult: 2.0 }
+    },
+    abilities: {
       1: { name: 'Blade Barrage', damage: 10, range: 60, knockback: 1.5, duration: 12, type: 'melee', frame: 5 },
-      2: { name: 'Blade Barrage', damage: 10, range: 60, knockback: 1.5, duration: 12, type: 'melee', frame: 5 },
-      3: { name: 'Blade Barrage', damage: 15, range: 65, knockback: 2.0, duration: 16, type: 'melee', frame: 6 },
-      4: { name: 'Bullet Storm', damage: 8, range: 300, knockback: 1.0, duration: 15, type: 'ranged', special: 'spread', frame: 7 },
-      5: { name: 'Charged Void Shot', damage: 35, range: 400, knockback: 6.0, duration: 30, type: 'ranged', pierce: true, frame: 8 },
-      special: { name: 'Quick Shot', damage: 15, range: 300, knockback: 2.0, duration: 15, type: 'ranged', frame: 7, cooldown: 30 }
+      10: { name: 'Void Pulse', damage: 15, range: 65, knockback: 2.0, duration: 16, type: 'melee', frame: 6 },
+      20: { name: 'Arc Barrage', damage: 8, range: 300, knockback: 1.0, duration: 15, type: 'ranged', special: 'spread', frame: 7 },
+      30: { name: 'Dark Matter Field', damage: 20, range: 350, knockback: 3.0, duration: 20, type: 'ranged', frame: 7 },
+      45: { name: 'Singularity', damage: 35, range: 400, knockback: 6.0, duration: 30, type: 'ranged', pierce: true, frame: 8 },
+      60: { name: 'Void Annihilation', damage: 60, range: 500, knockback: 10.0, duration: 40, type: 'ranged', pierce: true, frame: 8 },
+      special: { name: 'Charged Shot', damage: 25, range: 300, knockback: 4.0, duration: 25, type: 'ranged', frame: 7, cooldown: 45 }
     }
   }
 };
@@ -150,6 +181,53 @@ const COMBO_WINDOW = 55;
 
 function getHeroStats() { return HEROES[currentHero]; }
 
+function getUnlockedAbilities() {
+  const stats = getHeroStats();
+  const unlocked = [];
+  const levelReqs = [1, 10, 20, 30, 45, 60];
+  for (let i = 0; i < levelReqs.length; i++) {
+    if (player.level >= levelReqs[i]) {
+       const key = Object.keys(stats.abilities).find(k => k !== 'special' && parseInt(k) === levelReqs[i]);
+       if (key) unlocked.push(stats.abilities[key]);
+    }
+  }
+  return unlocked;
+}
+
+function updateProgression() {
+  const stats = getHeroStats();
+  let tierLevel = 1;
+  const tiers = [60, 45, 30, 15, 5, 1];
+  for (let t of tiers) {
+     if (player.level >= t) {
+        tierLevel = t;
+        break;
+     }
+  }
+
+  const currentTier = stats.tiers[tierLevel];
+  document.getElementById('weapon-display').textContent = `🗡️ ${currentTier.weapon}`;
+  document.getElementById('level-display').textContent = `Lvl ${player.level} [${player.xp}/${player.nextXp} XP]`;
+  document.getElementById('hp').textContent = Math.floor(player.hp);
+}
+
+function addXp(amount) {
+  player.xp += amount;
+  while (player.xp >= player.nextXp) {
+    player.level++;
+    player.xp -= player.nextXp;
+    player.nextXp = Math.floor(player.nextXp * 1.5);
+    player.maxHp += 10;
+    player.hp = player.maxHp;
+
+    // Spawn level up text
+    spawnDamageText(player.x + player.w/2, player.y - 30, "LEVEL UP!", "#ffaa00");
+    spawnParticles(player.x + player.w/2, player.y + player.h, "#ffaa00", 30, 'death');
+    updateProgression();
+  }
+}
+
+
 function getComboMultiplier() {
   if (player.comboCount >= 3) return 1.35;
   if (player.comboCount >= 2) return 1.15;
@@ -177,7 +255,7 @@ function registerAttack(type, isSpecial) {
 
   if (!isSpecial && now - player.lastAttackTime > 750) player.comboCount = 0;
 
-  const atkStats = stats.attacks[type];
+  const atkStats = stats.abilities[type];
   if (!atkStats) return; // Failsafe
 
   player.lastAttackTime = now;
@@ -226,6 +304,28 @@ function registerAttack(type, isSpecial) {
   }
   updateComboUI();
 
+  // Add screen shake for heavy/special attacks
+  if (atkStats.damage > 20) screenShake = atkStats.damage * 0.3;
+  if (atkStats.aoe) screenShake = atkStats.aoe * 0.1;
+
+  if (atkStats.type === 'melee') {
+      // Create weapon trail
+      const t = { color: stats.color, life: 1.0, width: 25, points: [] };
+      const cx = player.x + player.w/2;
+      const cy = player.y + player.h/2;
+      if (player.facing > 0) {
+          t.points.push({x: cx - 20, y: cy - 40});
+          t.points.push({x: cx + atkStats.range, y: cy});
+          t.points.push({x: cx + atkStats.range - 20, y: cy + 40});
+      } else {
+          t.points.push({x: cx + 20, y: cy - 40});
+          t.points.push({x: cx - atkStats.range, y: cy});
+          t.points.push({x: cx - atkStats.range + 20, y: cy + 40});
+      }
+      weaponTrails.push(t);
+  }
+
+
   if (atkStats.type === 'ranged') {
     let damage = Math.round(atkStats.damage * getComboMultiplier());
     if (atkStats.special === 'spread') {
@@ -242,8 +342,19 @@ function registerAttack(type, isSpecial) {
 
 function getCurrentAttackDamage() {
   const stats = getHeroStats();
-  const atk = stats.attacks[player.attackType];
-  return Math.round((atk ? atk.damage : 8) * getComboMultiplier());
+  const atk = stats.abilities[player.attackType];
+
+  let tierLevel = 1;
+  const tiers = [60, 45, 30, 15, 5, 1];
+  for (let t of tiers) {
+     if (player.level >= t) {
+        tierLevel = t;
+        break;
+     }
+  }
+
+  const mult = stats.tiers[tierLevel].mult;
+  return Math.round((atk ? atk.damage : 8) * mult * getComboMultiplier());
 }
 
 // ---------- WORLD & ROOMS ----------
@@ -310,6 +421,8 @@ let enemies = [];
 let particles = [];
 let damageTexts = [];
 let projectiles = [];
+let weaponTrails = [];
+let screenShake = 0;
 
 
 let boss = null;
@@ -383,7 +496,7 @@ function updateBoss() {
   // Player hits boss
   if (player.attacking && player.attackTimer > 4) {
       const stats = getHeroStats();
-      const atk = stats.attacks[player.attackType];
+      const atk = stats.abilities[player.attackType];
       if (atk && atk.type === 'melee') {
         const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
         if (boss.invuln <= 0 && sx < boss.x + boss.w && sx + atk.range > boss.x && player.y < boss.y + boss.h && player.y + player.h > boss.y) {
@@ -396,7 +509,7 @@ function updateBoss() {
 
           if (boss.hp <= 0) {
             boss.dead = true;
-            kills++; souls += 500;
+            kills++; souls += 500; addXp(500);
             spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#ffaa00', 40, 'death');
             document.getElementById('kills').textContent = kills;
             document.getElementById('souls').textContent = souls;
@@ -448,7 +561,7 @@ function transitionToRoom(roomId, spawnX, spawnY) {
     currentRoom = ROOMS[roomId];
     player.x = spawnX; player.y = spawnY;
     player.vx = 0; player.vy = 0;
-    enemies = []; particles = []; damageTexts = []; projectiles = [];
+    enemies = []; particles = []; damageTexts = []; projectiles = []; weaponTrails = []; screenShake = 0;
     document.getElementById('level-name').textContent = currentRoom.name;
     if (currentRoom.onEnter) currentRoom.onEnter();
 
@@ -466,7 +579,7 @@ window.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if (gameState !== 'playing') return;
   if (['z', 'j'].includes(e.key.toLowerCase())) tryAttack();
-  if (e.key.toLowerCase() === 'x') tryHeavy();
+  if (e.key.toLowerCase() === 'x') trySpecial();
   if (e.key.toLowerCase() === 'shift' || e.key.toLowerCase() === 'c') tryDash();
 });
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
@@ -494,6 +607,8 @@ function setupJoystick() {
 function tryAttack() {
   if (player.attackTimer > 6 || player.dashing > 0 || player.recoveryTimer > 0) return;
   const stats = getHeroStats();
+  const unlocked = getUnlockedAbilities();
+  if (unlocked.length === 0) return;
 
   let nextCombo = 1;
   const now = performance.now();
@@ -501,25 +616,18 @@ function tryAttack() {
       nextCombo = player.comboCount + 1;
   }
 
-  if (nextCombo > stats.maxCombo) {
-      nextCombo = 1; // Reset if max reached
+  if (nextCombo > unlocked.length) {
+      nextCombo = 1; // Reset if max reached for current level
   }
 
-  registerAttack(nextCombo, false);
-}
-
-function tryJump() {
-  if (player.jumpsLeft <= 0 || player.dashing > 0 || player.recoveryTimer > 0) return;
-  const stats = getHeroStats();
-  const force = player.onGround ? stats.jumpForce : stats.jumpForce * 0.9;
-  player.vy = force;
-  player.jumpsLeft--;
-  player.onGround = false;
-  spawnParticles(player.x + player.w/2, player.y + player.h, player.onGround ? '#88a' : stats.color, 6, 'hit');
+  // We need to pass the actual ability key from stats.abilities
+  // Assuming keys are sequential 1, 10, 20... map index back to key
+  const levelReqs = [1, 10, 20, 30, 45, 60];
+  registerAttack(levelReqs[nextCombo - 1], false);
 }
 
 function trySpecial() {
-  if (player.dashing > 0 || player.recoveryTimer > 0) return;
+  if (player.level < 1 || player.dashing > 0 || player.recoveryTimer > 0) return; // Special abilities might unlock later if we want, currently unlocked at 1
   if (player.specialCooldown > 0) return;
 
   registerAttack('special', true);
@@ -546,13 +654,16 @@ function setupGame() {
   player.maxHp = stats.hp;
   player.hp = stats.hp;
   player.speed = stats.speed;
-  document.getElementById('weapon-display').textContent = `🗡️ ${stats.weapon}`;
-  document.getElementById('hp').textContent = player.hp;
+  player.level = 1;
+  player.xp = 0;
+  player.nextXp = 100;
+  updateProgression();
+
 
   currentRoom = ROOMS.start_ruins;
   player.x = 100; player.y = 300;
   kills = 0; souls = 0;
-  enemies = []; particles = []; damageTexts = []; projectiles = [];
+  enemies = []; particles = []; damageTexts = []; projectiles = []; weaponTrails = []; screenShake = 0;
   if (currentRoom.onEnter) currentRoom.onEnter();
 
   gameState = 'intro';
@@ -577,6 +688,15 @@ function setupGame() {
 }
 
 function update() {
+  if (screenShake > 0) screenShake *= 0.8;
+  if (screenShake < 0.5) screenShake = 0;
+
+  // Weapon Trails
+  for (let i = weaponTrails.length - 1; i >= 0; i--) {
+     weaponTrails[i].life -= 0.1;
+     if (weaponTrails[i].life <= 0) weaponTrails.splice(i, 1);
+  }
+
   if (gameState !== 'playing') return;
 
   const stats = getHeroStats();
@@ -716,7 +836,7 @@ function update() {
     // Player hits enemy
     if (player.attacking && player.attackTimer > 4) {
       const stats = getHeroStats();
-      const atk = stats.attacks[player.attackType];
+      const atk = stats.abilities[player.attackType];
       if (atk && atk.type === 'melee') {
         const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
         if (sx < e.x + e.w && sx + atk.range > e.x && player.y < e.y + e.h && player.y + player.h > e.y) {
@@ -729,7 +849,7 @@ function update() {
 
         if (e.hp <= 0) {
           e.dead = true; e.deathTimer = 0;
-          kills++; souls += 5;
+          kills++; souls += 5; addXp(25);
           spawnParticles(e.x + e.w/2, e.y + e.h/2, '#a070ff', 15, 'death');
           document.getElementById('kills').textContent = kills;
           document.getElementById('souls').textContent = souls;
@@ -780,7 +900,7 @@ function update() {
             spawnDamageText(boss.x + boss.w/2, boss.y - 10, p.damage, '#fff');
 
             if (boss.hp <= 0) {
-              boss.dead = true; kills++; souls += 500;
+              boss.dead = true; kills++; souls += 500; addXp(500);
               spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#ffaa00', 40, 'death');
               setTimeout(() => { document.getElementById('msg-title').textContent = "Victory!"; document.getElementById('msg-desc').textContent = "You have defeated the Void Knight."; setGameOver(); }, 3000);
             }
@@ -797,7 +917,7 @@ function update() {
 
           if (e.hp <= 0) {
             e.dead = true; e.deathTimer = 0;
-            kills++; souls += 5;
+            kills++; souls += 5; addXp(25);
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#a070ff', 15, 'death');
             document.getElementById('kills').textContent = kills;
             document.getElementById('souls').textContent = souls;
@@ -849,9 +969,8 @@ function drawKael(x, y) {
   const drawW = 100, drawH = 130, drawX = x + (player.w - drawW)/2, drawY = y + player.h - drawH + 2;
 
   ctx.save();
-  // Hero color tinting (simple globalAlpha composite trick for non-Kael heroes)
   if (currentHero !== 'kael') {
-     // For placeholders, we tint them based on their color
+     ctx.filter = `drop-shadow(0 0 10px ${getHeroStats().color}) hue-rotate(90deg) saturate(2)`;
   }
 
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
@@ -889,17 +1008,20 @@ function drawBoss() {
 }
 
 function drawLeech(e) {
-  if (!sprites.leech || sprites.leech.naturalWidth < 10) {
-    ctx.fillStyle = '#6a3090'; ctx.fillRect(e.x, e.y, e.w, e.h); return;
-  }
-  const frame = Math.max(0, Math.min(4, e.animFrame)), sx = frame * LEECH_FW;
-  const dw = 80, dh = 70, dx = e.x + (e.w - dw)/2, dy = e.y + e.h - dh;
+  if (!sprites.leech || sprites.leech.naturalWidth < 10) return;
+  const frame = Math.floor(e.animTimer / 10) % 4;
+  const sw = LEECH_FW, sh = LEECH_FH, sx = frame * sw, sy = 0;
+  const drawW = 80, drawH = 80, drawX = e.x + (e.w - drawW)/2, drawY = e.y + e.h - drawH;
+
   ctx.save();
-  if (e.facing < 0) {
-    ctx.translate(dx + dw, dy); ctx.scale(-1, 1);
-    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, 0, 0, dw, dh);
+  if (e.hurtTimer > 0) {
+      ctx.filter = 'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)';
+  }
+  if (e.facing > 0) {
+    ctx.translate(drawX + drawW, drawY); ctx.scale(-1, 1);
+    ctx.drawImage(sprites.leech, sx, sy, sw, sh, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, dx, dy, dw, dh);
+    ctx.drawImage(sprites.leech, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
@@ -932,7 +1054,12 @@ function draw() {
   drawBG();
 
   ctx.save();
-  ctx.translate(-cameraX, -cameraY);
+  let shakeX = 0, shakeY = 0;
+  if (screenShake > 0) {
+      shakeX = (Math.random() - 0.5) * screenShake;
+      shakeY = (Math.random() - 0.5) * screenShake;
+  }
+  ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
   if (currentRoom) {
     // Gates
