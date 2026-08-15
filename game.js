@@ -17,43 +17,56 @@ resize();
 // ---------- HERO DATA ----------
 const HEROES = {
   kael: {
-    name: 'Kael', weapon: 'Bare Hands', color: '#a070ff',
+    name: 'Kael', weapon: 'Shadow Sword', color: '#a070ff',
     speed: 4.4, hp: 120, jumpForce: -11.8, dashSpeed: 12,
+    maxCombo: 7,
     attacks: {
-      jab:      { damage: 8,  range: 55, knockback: 2.2, duration: 14 },
-      cross:    { damage: 14, range: 62, knockback: 4.5, duration: 18 },
-      spinKick: { damage: 22, range: 72, knockback: 7.0, duration: 24 },
-      heavy:    { damage: 26, range: 65, knockback: 8.5, duration: 28 }
+      1: { name: 'Shadow Slash', damage: 12, range: 65, knockback: 2.2, duration: 14, type: 'melee', frame: 5 },
+      2: { name: 'Shadow Slash', damage: 12, range: 65, knockback: 2.2, duration: 14, type: 'melee', frame: 5 },
+      3: { name: 'Shadow Slash', damage: 18, range: 75, knockback: 4.5, duration: 18, type: 'melee', frame: 6 },
+      4: { name: 'Crescent Blade', damage: 20, range: 85, knockback: 5.0, duration: 18, type: 'melee', frame: 6 },
+      5: { name: 'Crescent Blade', damage: 28, range: 90, knockback: 7.0, duration: 24, type: 'melee', frame: 7 },
+      6: { name: 'Eclipse Finisher', damage: 30, range: 90, knockback: 8.0, duration: 24, type: 'melee', frame: 7 },
+      7: { name: 'Eclipse Finisher', damage: 50, range: 100, knockback: 10.0, duration: 30, type: 'melee', frame: 7, invuln: 15 },
+      special: { name: 'Heavy Overhead Slash', damage: 45, range: 90, knockback: 8.5, duration: 30, type: 'melee', frame: 8, cooldown: 60 }
     }
   },
-  echo: {
-    name: 'Echo', weapon: 'Katana', color: '#40c0ff',
-    speed: 5.2, hp: 90, jumpForce: -12.5, dashSpeed: 15,
+  lyra: {
+    name: 'Lyra', weapon: 'Assassin Blades', color: '#40ff80',
+    speed: 5.8, hp: 80, jumpForce: -12.5, dashSpeed: 16,
+    maxCombo: 5,
     attacks: {
-      jab:      { damage: 12, range: 70, knockback: 1.5, duration: 12 },
-      cross:    { damage: 18, range: 80, knockback: 2.5, duration: 16 },
-      spinKick: { damage: 28, range: 90, knockback: 4.0, duration: 20 },
-      heavy:    { damage: 35, range: 100, knockback: 6.0, duration: 30 }
+      1: { name: 'Twin Flurry', damage: 6, range: 50, knockback: 1.0, duration: 8, type: 'melee', frame: 5 },
+      2: { name: 'Twin Flurry', damage: 6, range: 50, knockback: 1.0, duration: 8, type: 'melee', frame: 5 },
+      3: { name: 'Twin Flurry', damage: 8, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
+      4: { name: 'Cross Cut', damage: 14, range: 60, knockback: -2.0, duration: 14, type: 'melee', frame: 6 }, // Negative knockback for pull-in
+      5: { name: 'Vanish Strike', damage: 30, range: 70, knockback: 3.5, duration: 18, type: 'melee', frame: 7, teleport: 30 },
+      special: { name: 'Shadow Dash Attack', damage: 25, range: 40, knockback: 5.0, duration: 15, type: 'melee', dash: 12, frame: 8, cooldown: 45 }
+    }
+  },
+  vex: {
+    name: 'Vex', weapon: 'Heavy Cleaver', color: '#ff8040',
+    speed: 3.2, hp: 200, jumpForce: -10.0, dashSpeed: 8,
+    maxCombo: 4,
+    attacks: {
+      1: { name: 'Crushing Blow', damage: 25, range: 75, knockback: 4.0, duration: 22, type: 'melee', frame: 5 },
+      2: { name: 'Crushing Blow', damage: 35, range: 85, knockback: 6.0, duration: 28, type: 'melee', frame: 6 },
+      3: { name: 'Quake Slash', damage: 45, range: 100, knockback: 8.0, duration: 35, type: 'melee', frame: 7, aoe: 150 }, // AOE damage
+      4: { name: 'Executioner', damage: 80, range: 110, knockback: 15.0, duration: 55, type: 'melee', frame: 8, recovery: 20 },
+      special: { name: 'Ground Smash', damage: 40, range: 150, knockback: 10.0, duration: 35, type: 'melee', frame: 8, aoe: 200, stun: 30, cooldown: 120 }
     }
   },
   nyx: {
-    name: 'Nyx', weapon: 'Daggers', color: '#ff4040',
-    speed: 6.0, hp: 80, jumpForce: -11.5, dashSpeed: 18,
+    name: 'Nyx', weapon: 'Void Gun & Blade', color: '#40c0ff',
+    speed: 4.8, hp: 100, jumpForce: -11.0, dashSpeed: 10,
+    maxCombo: 5,
     attacks: {
-      jab:      { damage: 6,  range: 45, knockback: 1.0, duration: 8 },
-      cross:    { damage: 10, range: 50, knockback: 1.5, duration: 10 },
-      spinKick: { damage: 16, range: 55, knockback: 2.0, duration: 14 },
-      heavy:    { damage: 24, range: 60, knockback: 4.0, duration: 20 }
-    }
-  },
-  orion: {
-    name: 'Orion', weapon: 'Staff', color: '#ffc040',
-    speed: 3.8, hp: 100, jumpForce: -10.5, dashSpeed: 10,
-    attacks: {
-      jab:      { damage: 15, range: 90, knockback: 3.0, duration: 18 },
-      cross:    { damage: 20, range: 100, knockback: 5.0, duration: 22 },
-      spinKick: { damage: 30, range: 110, knockback: 8.0, duration: 30 },
-      heavy:    { damage: 45, range: 150, knockback: 12.0, duration: 40 }
+      1: { name: 'Blade Barrage', damage: 10, range: 60, knockback: 1.5, duration: 12, type: 'melee', frame: 5 },
+      2: { name: 'Blade Barrage', damage: 10, range: 60, knockback: 1.5, duration: 12, type: 'melee', frame: 5 },
+      3: { name: 'Blade Barrage', damage: 15, range: 65, knockback: 2.0, duration: 16, type: 'melee', frame: 6 },
+      4: { name: 'Bullet Storm', damage: 8, range: 300, knockback: 1.0, duration: 15, type: 'ranged', special: 'spread', frame: 7 },
+      5: { name: 'Charged Void Shot', damage: 35, range: 400, knockback: 6.0, duration: 30, type: 'ranged', pierce: true, frame: 8 },
+      special: { name: 'Quick Shot', damage: 15, range: 300, knockback: 2.0, duration: 15, type: 'ranged', frame: 7, cooldown: 30 }
     }
   }
 };
@@ -157,38 +170,80 @@ function updateComboUI() {
   }
 }
 
-function registerAttack(type) {
+function registerAttack(type, isSpecial) {
   if (player.dashing > 0) return;
   const now = performance.now();
-  if (now - player.lastAttackTime > 750) player.comboCount = 0;
-
   const stats = getHeroStats();
-  const atkStats = type === 1 ? stats.attacks.jab : type === 2 ? stats.attacks.cross : type === 3 ? stats.attacks.spinKick : stats.attacks.heavy;
+
+  if (!isSpecial && now - player.lastAttackTime > 750) player.comboCount = 0;
+
+  const atkStats = stats.attacks[type];
+  if (!atkStats) return; // Failsafe
 
   player.lastAttackTime = now;
   player.attacking = true;
   player.attackType = type;
   player.attackTimer = atkStats.duration;
+  player.animFrame = atkStats.frame || 5;
 
-  if (type === 4) {
-    player.comboCount = 0;
-    player.animFrame = 8;
-  } else {
-    player.comboCount = Math.min(player.comboCount + 1, 3);
+  if (atkStats.cooldown && isSpecial) {
+     player.specialCooldown = atkStats.cooldown;
+  }
+  if (atkStats.recovery) {
+     player.recoveryTimer = atkStats.recovery;
+  }
+  if (atkStats.teleport) {
+     player.x += player.facing * atkStats.teleport;
+     spawnParticles(player.x, player.y + player.h/2, stats.color, 5, 'dash');
+  }
+  if (atkStats.dash) {
+     player.vx = player.facing * atkStats.dash;
+  }
+  if (atkStats.invuln) {
+     player.invuln = atkStats.invuln;
+  }
+  if (atkStats.stun) {
+     // Apply stun to all enemies if AOE
+     for (const e of enemies) {
+         if (Math.abs(e.x - player.x) < atkStats.aoe) {
+             e.hurtTimer = atkStats.stun;
+             e.hp -= atkStats.damage;
+         }
+     }
+  } else if (atkStats.aoe) {
+     for (const e of enemies) {
+         if (Math.abs(e.x - player.x) < atkStats.aoe) {
+             e.hp -= atkStats.damage;
+             e.hurtTimer = 10;
+             spawnParticles(e.x, e.y, stats.color, 5, 'hit');
+         }
+     }
+  }
+
+  if (!isSpecial) {
+    player.comboCount = Math.min(player.comboCount + 1, stats.maxCombo);
     player.comboTimer = COMBO_WINDOW;
-    player.animFrame = type === 1 ? 5 : type === 2 ? 6 : 7;
   }
   updateComboUI();
+
+  if (atkStats.type === 'ranged') {
+    let damage = Math.round(atkStats.damage * getComboMultiplier());
+    if (atkStats.special === 'spread') {
+      projectiles.push({ x: player.x + player.w/2, y: player.y + 40, vx: player.facing * 12, vy: -1.5, damage: damage, life: 60, owner: 'player', color: stats.color });
+      projectiles.push({ x: player.x + player.w/2, y: player.y + 40, vx: player.facing * 12, vy: 0, damage: damage, life: 60, owner: 'player', color: stats.color });
+      projectiles.push({ x: player.x + player.w/2, y: player.y + 40, vx: player.facing * 12, vy: 1.5, damage: damage, life: 60, owner: 'player', color: stats.color });
+    } else {
+      let life = atkStats.pierce ? 80 : 40;
+      projectiles.push({ x: player.x + player.w/2, y: player.y + 40, vx: player.facing * 15, vy: 0, damage: damage, life: life, owner: 'player', color: stats.color, pierce: atkStats.pierce });
+    }
+    spawnParticles(player.x + (player.facing > 0 ? player.w : 0), player.y + 40, stats.color, 4, 'hit');
+  }
 }
 
 function getCurrentAttackDamage() {
   const stats = getHeroStats();
-  let base = 8;
-  if (player.attackType === 1) base = stats.attacks.jab.damage;
-  else if (player.attackType === 2) base = stats.attacks.cross.damage;
-  else if (player.attackType === 3) base = stats.attacks.spinKick.damage;
-  else if (player.attackType === 4) base = stats.attacks.heavy.damage;
-  return Math.round(base * getComboMultiplier());
+  const atk = stats.attacks[player.attackType];
+  return Math.round((atk ? atk.damage : 8) * getComboMultiplier());
 }
 
 // ---------- WORLD & ROOMS ----------
@@ -206,7 +261,7 @@ const ROOMS = {
       { x: 1250, y: 260, w: 110, h: 20 }
     ],
     gates: [
-      { x: 1900, y: 340, w: 60, h: 100, dest: 'arena_1', type: 'exit' }
+      { x: 1900, y: 340, w: 60, h: 100, dest: 'boss_arena', type: 'exit' }, { x: 50, y: 340, w: 60, h: 100, dest: 'arena_1', type: 'entrance' }
     ],
     bgType: 'ruins',
     onEnter: () => {
@@ -233,12 +288,134 @@ const ROOMS = {
     onEnter: () => {
       roomTimer = 0;
     }
+  },
+  boss_arena: {
+    name: 'Boss Duel - The Void Knight',
+    width: 1000, height: 600,
+    platforms: [
+      { x: 0, y: 500, w: 1000, h: 100 }
+    ],
+    gates: [],
+    bgType: 'arena',
+    isBoss: true,
+    onEnter: () => {
+      // Spawn Boss
+      boss = createBoss(800, 300);
+      document.getElementById('boss-ui').style.display = 'block';
+    }
   }
 };
 
 let enemies = [];
 let particles = [];
 let damageTexts = [];
+let projectiles = [];
+
+
+let boss = null;
+
+function createBoss(x, y) {
+  return {
+    x, y, w: 80, h: 120, hp: 1500, maxHp: 1500,
+    speed: 3, facing: -1, hurtTimer: 0, animFrame: 0, animTimer: 0, dead: false, deathTimer: 0,
+    state: 'idle', stateTimer: 60, attackCooldown: 0, vy: 0
+  };
+}
+
+function updateBoss() {
+  if (!boss || boss.dead) return;
+  if (boss.invuln > 0) boss.invuln--;
+  const dx = player.x - boss.x;
+  boss.facing = dx > 0 ? 1 : -1;
+
+  if (boss.hurtTimer > 0) {
+    boss.hurtTimer--;
+    boss.animFrame = 9;
+  } else {
+    boss.stateTimer--;
+    if (boss.stateTimer <= 0) {
+      // Choose new state
+      const rand = Math.random();
+      if (Math.abs(dx) > 300) {
+         if (rand < 0.6) { boss.state = 'dash'; boss.stateTimer = 20; }
+         else { boss.state = 'shoot'; boss.stateTimer = 40; }
+      } else {
+         if (rand < 0.7) { boss.state = 'melee'; boss.stateTimer = 30; }
+         else { boss.state = 'idle'; boss.stateTimer = 30; }
+      }
+    }
+
+    boss.vy += 0.6;
+    if (boss.vy > 15) boss.vy = 15;
+    boss.y += boss.vy;
+    if (boss.y + boss.h > 500) { boss.y = 500 - boss.h; boss.vy = 0; }
+
+    if (boss.state === 'dash') {
+      boss.x += boss.facing * 12;
+      boss.animFrame = 2;
+      spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#f00', 1, 'dash');
+    } else if (boss.state === 'melee') {
+      boss.animFrame = 7;
+      if (boss.stateTimer === 15) { // Hit frame
+         if (Math.abs(dx) < 120 && player.y > boss.y - 50 && player.y < boss.y + boss.h + 50) {
+            if (player.invuln <= 0 && player.dashing <= 0) {
+               player.hp -= 30;
+               player.invuln = 40;
+               player.vy = -6;
+               player.vx = boss.facing * 8;
+               spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 15, 'hit');
+               spawnDamageText(player.x + player.w/2, player.y - 10, 30, '#f00');
+               if (player.hp <= 0) setGameOver();
+            }
+         }
+      }
+    } else if (boss.state === 'shoot') {
+      boss.animFrame = 6;
+      if (boss.stateTimer === 20) {
+         projectiles.push({ x: boss.x + boss.w/2, y: boss.y + 40, vx: boss.facing * 10, vy: 0, damage: 20, life: 80, owner: 'boss', color: '#ff0000' });
+      }
+    } else {
+      boss.x += boss.facing * boss.speed;
+      boss.animFrame = (Math.floor(performance.now() / 150) % 2 === 0) ? 1 : 2;
+    }
+  }
+
+  // Player hits boss
+  if (player.attacking && player.attackTimer > 4) {
+      const stats = getHeroStats();
+      const atk = stats.attacks[player.attackType];
+      if (atk && atk.type === 'melee') {
+        const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
+        if (boss.invuln <= 0 && sx < boss.x + boss.w && sx + atk.range > boss.x && player.y < boss.y + boss.h && player.y + player.h > boss.y) {
+          const dmg = getCurrentAttackDamage();
+          boss.hp -= dmg;
+          boss.hurtTimer = 10;
+          boss.invuln = 10;
+          spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#ff0000', 8, 'hit');
+          spawnDamageText(boss.x + boss.w/2, boss.y - 10, dmg, '#fff');
+
+          if (boss.hp <= 0) {
+            boss.dead = true;
+            kills++; souls += 500;
+            spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#ffaa00', 40, 'death');
+            document.getElementById('kills').textContent = kills;
+            document.getElementById('souls').textContent = souls;
+            setTimeout(() => {
+                document.getElementById('msg-title').textContent = "Victory!";
+                document.getElementById('msg-desc').textContent = "You have defeated the Void Knight.";
+                setGameOver();
+            }, 3000);
+          }
+        }
+      }
+  }
+
+  // Update boss UI
+  const bossHpFill = document.getElementById('boss-hp-fill');
+  if (bossHpFill) {
+      bossHpFill.style.width = Math.max(0, (boss.hp / boss.maxHp) * 100) + '%';
+  }
+}
 
 function createLeech(x, y) {
   return {
@@ -271,7 +448,7 @@ function transitionToRoom(roomId, spawnX, spawnY) {
     currentRoom = ROOMS[roomId];
     player.x = spawnX; player.y = spawnY;
     player.vx = 0; player.vy = 0;
-    enemies = []; particles = []; damageTexts = [];
+    enemies = []; particles = []; damageTexts = []; projectiles = [];
     document.getElementById('level-name').textContent = currentRoom.name;
     if (currentRoom.onEnter) currentRoom.onEnter();
 
@@ -315,36 +492,53 @@ function setupJoystick() {
 }
 
 function tryAttack() {
-  if (player.attackTimer > 6 || player.dashing > 0) return;
-  let type = 1;
-  if (player.comboCount === 1 && player.comboTimer > 0) type = 2;
-  else if (player.comboCount === 2 && player.comboTimer > 0) type = 3;
-  registerAttack(type);
+  if (player.attackTimer > 6 || player.dashing > 0 || player.recoveryTimer > 0) return;
+  const stats = getHeroStats();
+
+  let nextCombo = 1;
+  const now = performance.now();
+  if (now - player.lastAttackTime < 800 && player.comboCount > 0) {
+      nextCombo = player.comboCount + 1;
+  }
+
+  if (nextCombo > stats.maxCombo) {
+      nextCombo = 1; // Reset if max reached
+  }
+
+  registerAttack(nextCombo, false);
 }
-function tryHeavy() { if (player.attackTimer > 4 || player.dashing > 0) return; registerAttack(4); }
+
 function tryJump() {
-  if (player.jumpsLeft <= 0 || player.dashing > 0) return;
-  const force = player.onGround ? getHeroStats().jumpForce : getHeroStats().jumpForce * 0.9;
+  if (player.jumpsLeft <= 0 || player.dashing > 0 || player.recoveryTimer > 0) return;
+  const stats = getHeroStats();
+  const force = player.onGround ? stats.jumpForce : stats.jumpForce * 0.9;
   player.vy = force;
   player.jumpsLeft--;
   player.onGround = false;
-  spawnParticles(player.x + player.w/2, player.y + player.h, player.onGround ? '#88a' : getHeroStats().color, 6, 'hit');
+  spawnParticles(player.x + player.w/2, player.y + player.h, player.onGround ? '#88a' : stats.color, 6, 'hit');
 }
+
+function trySpecial() {
+  if (player.dashing > 0 || player.recoveryTimer > 0) return;
+  if (player.specialCooldown > 0) return;
+
+  registerAttack('special', true);
+}
+
+// Map tryHeavy to special for UI button backwards compat, we repurposed dash to special
 function tryDash() {
-  if (player.dashCooldown > 0 || player.dashing > 0) return;
+  if (player.dashCooldown > 0 || player.dashing > 0 || player.recoveryTimer > 0 || player.attacking) return;
   player.dashing = 12;
   player.dashCooldown = 40;
   player.invuln = 15;
-  player.attacking = false;
-  player.attackTimer = 0;
 }
 
 document.getElementById('attack-btn').addEventListener('touchstart', e => { e.preventDefault(); tryAttack(); });
 document.getElementById('attack-btn').addEventListener('mousedown', tryAttack);
 document.getElementById('jump-btn').addEventListener('touchstart', e => { e.preventDefault(); tryJump(); });
 document.getElementById('jump-btn').addEventListener('mousedown', tryJump);
-document.getElementById('special-btn').addEventListener('touchstart', e => { e.preventDefault(); tryDash(); });
-document.getElementById('special-btn').addEventListener('mousedown', tryDash);
+document.getElementById('special-btn').addEventListener('touchstart', e => { e.preventDefault(); trySpecial(); });
+document.getElementById('special-btn').addEventListener('mousedown', trySpecial);
 
 // ---------- LOGIC ----------
 function setupGame() {
@@ -358,7 +552,7 @@ function setupGame() {
   currentRoom = ROOMS.start_ruins;
   player.x = 100; player.y = 300;
   kills = 0; souls = 0;
-  enemies = []; particles = []; damageTexts = [];
+  enemies = []; particles = []; damageTexts = []; projectiles = [];
   if (currentRoom.onEnter) currentRoom.onEnter();
 
   gameState = 'intro';
@@ -445,11 +639,12 @@ function update() {
     // Gates
     for (const g of currentRoom.gates) {
       if (player.x + player.w > g.x && player.x < g.x + g.w && player.y + player.h > g.y && player.y < g.y + g.h) {
-         if (g.type === 'exit') transitionToRoom(g.dest, 50, 300);
+         if (g.type === 'exit' || g.type === 'entrance') transitionToRoom(g.dest, 50, 300);
       }
     }
 
     // Survival Logic
+    if (currentRoom.isBoss) { updateBoss(); }
     if (currentRoom.isSurvival) {
       roomTimer++;
       if (roomTimer % 120 === 0 && enemies.length < 15) { // Spawn enemy every 2s
@@ -459,10 +654,15 @@ function update() {
     }
   }
 
+
   if (player.attackTimer > 0) player.attackTimer--;
   else player.attacking = false;
 
+  if (player.recoveryTimer > 0) player.recoveryTimer--;
+  if (player.specialCooldown > 0) player.specialCooldown--;
+
   if (player.invuln > 0) player.invuln--;
+
   if (player.comboTimer > 0) {
     player.comboTimer--;
     if (player.comboTimer <= 0) { player.comboCount = 0; updateComboUI(); }
@@ -515,9 +715,11 @@ function update() {
 
     // Player hits enemy
     if (player.attacking && player.attackTimer > 4) {
-      const atk = player.attackType === 1 ? stats.attacks.jab : player.attackType === 2 ? stats.attacks.cross : player.attackType === 3 ? stats.attacks.spinKick : stats.attacks.heavy;
-      const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
-      if (sx < e.x + e.w && sx + atk.range > e.x && player.y < e.y + e.h && player.y + player.h > e.y) {
+      const stats = getHeroStats();
+      const atk = stats.attacks[player.attackType];
+      if (atk && atk.type === 'melee') {
+        const sx = player.facing > 0 ? player.x + player.w - 10 : player.x - atk.range + 10;
+        if (sx < e.x + e.w && sx + atk.range > e.x && player.y < e.y + e.h && player.y + player.h > e.y) {
         const dmg = getCurrentAttackDamage();
         e.hp -= dmg;
         e.hurtTimer = 15;
@@ -559,6 +761,65 @@ function update() {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
+
+  // Projectiles
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life--;
+
+    let hit = false;
+    // Check hit enemies if player projectile
+    if (p.owner === 'player') {
+      if (currentRoom && currentRoom.isBoss && boss && !boss.dead) {
+         if (p.x > boss.x && p.x < boss.x + boss.w && p.y > boss.y && p.y < boss.y + boss.h) {
+            hit = true;
+            boss.hp -= p.damage;
+            boss.hurtTimer = 10;
+            spawnParticles(p.x, p.y, p.color, 5, 'hit');
+            spawnDamageText(boss.x + boss.w/2, boss.y - 10, p.damage, '#fff');
+
+            if (boss.hp <= 0) {
+              boss.dead = true; kills++; souls += 500;
+              spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#ffaa00', 40, 'death');
+              setTimeout(() => { document.getElementById('msg-title').textContent = "Victory!"; document.getElementById('msg-desc').textContent = "You have defeated the Void Knight."; setGameOver(); }, 3000);
+            }
+         }
+      }
+      for (let j = 0; j < enemies.length; j++) {
+        const e = enemies[j];
+        if (!e.dead && p.x > e.x && p.x < e.x + e.w && p.y > e.y && p.y < e.y + e.h) {
+          hit = true;
+          e.hp -= p.damage;
+          e.hurtTimer = 10;
+          spawnParticles(p.x, p.y, p.color, 5, 'hit');
+          spawnDamageText(e.x + e.w/2, e.y - 10, p.damage, '#fff');
+
+          if (e.hp <= 0) {
+            e.dead = true; e.deathTimer = 0;
+            kills++; souls += 5;
+            spawnParticles(e.x + e.w/2, e.y + e.h/2, '#a070ff', 15, 'death');
+            document.getElementById('kills').textContent = kills;
+            document.getElementById('souls').textContent = souls;
+          }
+          break;
+        }
+      }
+    }
+        if (p.owner === 'boss') {
+       if (p.x > player.x && p.x < player.x + player.w && p.y > player.y && p.y < player.y + player.h) {
+           if (player.invuln <= 0 && player.dashing <= 0) {
+               hit = true;
+               player.hp -= p.damage;
+               player.invuln = 40;
+               spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10, 'hit');
+               spawnDamageText(player.x + player.w/2, player.y - 10, p.damage, '#f00');
+               if (player.hp <= 0) setGameOver();
+           }
+       }
+    }
+    if ((hit && !p.pierce) || p.life <= 0) projectiles.splice(i, 1);
+  }
   // Damage text
   for (let i = damageTexts.length - 1; i >= 0; i--) {
     const d = damageTexts[i];
@@ -595,6 +856,30 @@ function drawKael(x, y) {
 
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
   if (player.facing < 0) {
+    ctx.translate(drawX + drawW, drawY); ctx.scale(-1, 1);
+    ctx.drawImage(sprites.kael, sx, sy, sw, sh, 0, 0, drawW, drawH);
+  } else {
+    ctx.drawImage(sprites.kael, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
+  }
+  ctx.restore();
+}
+
+
+function drawBoss() {
+  if (!boss) return;
+  if (boss.dead) return; // Simple disappear for now
+
+  // We reuse Kael sprite but scale it and tint it red
+  const frame = Math.max(0, Math.min(9, boss.animFrame));
+  const pad = 8, sx = frame * KAEL_FW + pad, sy = 0, sw = KAEL_FW - pad*2, sh = KAEL_FH;
+  const drawW = 120, drawH = 160, drawX = boss.x + (boss.w - drawW)/2, drawY = boss.y + boss.h - drawH + 2;
+
+  ctx.save();
+  ctx.globalAlpha = boss.hurtTimer > 0 ? 0.5 : 1.0;
+  // Red tint
+  ctx.filter = 'hue-rotate(180deg) saturate(3) brightness(0.8)';
+
+  if (boss.facing < 0) {
     ctx.translate(drawX + drawW, drawY); ctx.scale(-1, 1);
     ctx.drawImage(sprites.kael, sx, sy, sw, sh, 0, 0, drawW, drawH);
   } else {
@@ -667,6 +952,7 @@ function draw() {
   }
 
   enemies.forEach(e => drawLeech(e));
+  if (currentRoom && currentRoom.isBoss) drawBoss();
   if (gameState !== 'transition') drawKael(player.x, player.y);
 
   particles.forEach(p => {
@@ -675,6 +961,17 @@ function draw() {
     ctx.beginPath(); ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI*2); ctx.fill();
   });
 
+
+  projectiles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 8, 4, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 4, 2, 0, 0, Math.PI*2);
+    ctx.fill();
+  });
   damageTexts.forEach(d => {
     const alpha = Math.max(0, d.life / 40);
     ctx.globalAlpha = alpha; ctx.fillStyle = d.color; ctx.font = 'bold 16px sans-serif';
@@ -708,6 +1005,7 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
 
 document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('message').style.display = 'none';
+  document.getElementById('boss-ui').style.display = 'none';
   gameState = 'hero_select';
   document.getElementById('hero-select').style.display = 'flex';
   document.getElementById('ui').style.display = 'none';
@@ -718,3 +1016,4 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 setupJoystick();
 loadSprites(() => console.log('Sprites ready'));
 loop();
+}

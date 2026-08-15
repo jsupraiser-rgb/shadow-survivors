@@ -324,6 +324,14 @@
       </div>
     </div>
 
+
+    <div id="boss-ui" style="display: none; position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 60%; z-index: 20;">
+      <div style="text-align: center; color: #ff5555; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; text-shadow: 0 0 5px red;">Void Knight</div>
+      <div style="width: 100%; height: 12px; background: #222; border: 2px solid #555; border-radius: 6px; overflow: hidden;">
+        <div id="boss-hp-fill" style="width: 100%; height: 100%; background: linear-gradient(to right, #800, #f00); transition: width 0.2s;"></div>
+      </div>
+    </div>
+
     <div id="level-name">Level 1 – The Shadow Ruins</div>
     <div id="combo-display">3-HIT COMBO!</div>
 
@@ -345,31 +353,33 @@
       <h1 class="shadow-title">Shadow Survivors</h1>
       <p class="shadow-subtitle">Choose Your Legend</p>
 
+
       <div id="hero-cards">
         <div class="hero-card" data-hero="kael" style="--color: #a070ff;">
           <div class="hero-silhouette"></div>
           <div class="glow-fx"></div>
           <h3>Kael</h3>
-          <p>The Brawler</p>
+          <p>The Shadow Blade</p>
         </div>
-        <div class="hero-card" data-hero="echo" style="--color: #40c0ff;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -120px 0;"></div>
+        <div class="hero-card" data-hero="lyra" style="--color: #40ff80;">
+          <div class="hero-silhouette" style="-webkit-mask-position: -128px 0;"></div>
           <div class="glow-fx"></div>
-          <h3>Echo</h3>
-          <p>The Blademaster</p>
-        </div>
-        <div class="hero-card" data-hero="nyx" style="--color: #ff4040;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -240px 0;"></div>
-          <div class="glow-fx"></div>
-          <h3>Nyx</h3>
+          <h3>Lyra</h3>
           <p>The Assassin</p>
         </div>
-        <div class="hero-card" data-hero="orion" style="--color: #ffc040;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -360px 0;"></div>
+        <div class="hero-card" data-hero="vex" style="--color: #ff8040;">
+          <div class="hero-silhouette" style="-webkit-mask-position: -256px 0;"></div>
           <div class="glow-fx"></div>
-          <h3>Orion</h3>
-          <p>The Mage</p>
+          <h3>Vex</h3>
+          <p>The Tank</p>
         </div>
+        <div class="hero-card" data-hero="nyx" style="--color: #40c0ff;">
+          <div class="hero-silhouette" style="-webkit-mask-position: -384px 0;"></div>
+          <div class="glow-fx"></div>
+          <h3>Nyx</h3>
+          <p>The Gunner</p>
+        </div>
+      </div>
       </div>
 
       <button id="start-game-btn">Enter the Shadows</button>
