@@ -105,14 +105,17 @@ const HEROES = {
 let currentHero = 'kael';
 
 // ---------- SPRITES ----------
-const sprites = { kael: null, leech: null, loaded: 0, total: 2 };
+const sprites = { kael: null, lyra: null, vex: null, nyx: null, leech: null, loaded: 0, total: 5 };
 let KAEL_FW = 128, KAEL_FH = 170;
 let LEECH_FW = 64, LEECH_FH = 64;
 
 function loadSprites(callback) {
   sprites.kael = new Image();
+  sprites.lyra = new Image();
+  sprites.vex = new Image();
+  sprites.nyx = new Image();
   sprites.leech = new Image();
-  let pending = 2;
+  let pending = 5;
 
   function oneDone() {
     pending--;
@@ -139,12 +142,19 @@ function loadSprites(callback) {
   sprites.kael.onload = function() {
     stripWhite(sprites.kael, function(cleaned) {
       sprites.kael = cleaned;
-      KAEL_FW = Math.floor(cleaned.naturalWidth / 10) || 128;
-      KAEL_FH = cleaned.naturalHeight || 170;
+      KAEL_FW = Math.floor(cleaned.naturalWidth / 6) || 256;
+      KAEL_FH = Math.floor(cleaned.naturalHeight / 4) || 256;
       oneDone();
     });
   };
   sprites.kael.onerror = oneDone;
+  sprites.lyra.onload = function() { stripWhite(sprites.lyra, function(cleaned) { sprites.lyra = cleaned; oneDone(); }); };
+  sprites.lyra.onerror = oneDone;
+  sprites.vex.onload = function() { stripWhite(sprites.vex, function(cleaned) { sprites.vex = cleaned; oneDone(); }); };
+  sprites.vex.onerror = oneDone;
+  sprites.nyx.onload = function() { stripWhite(sprites.nyx, function(cleaned) { sprites.nyx = cleaned; oneDone(); }); };
+  sprites.nyx.onerror = oneDone;
+
   sprites.leech.onload = function() {
     LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5) || 64;
     LEECH_FH = sprites.leech.naturalHeight || 64;
@@ -153,6 +163,10 @@ function loadSprites(callback) {
   sprites.leech.onerror = oneDone;
 
   sprites.kael.src = 'kael_sheet.png';
+  // Use kael_sheet for other heroes for now until provided
+  sprites.lyra.src = 'kael_sheet.png';
+  sprites.vex.src = 'kael_sheet.png';
+  sprites.nyx.src = 'kael_sheet.png';
   sprites.leech.src = 'leech_sheet.png';
 }
 
@@ -262,7 +276,11 @@ function registerAttack(type, isSpecial) {
   player.attacking = true;
   player.attackType = type;
   player.attackTimer = atkStats.duration;
-  player.animFrame = atkStats.frame || 5;
+  if (!player.onGround && atkStats.type === 'melee') {
+      player.animFrame = 14; // Jump kick
+  } else {
+      player.animFrame = atkStats.frame || 5;
+  }
 
   if (atkStats.cooldown && isSpecial) {
      player.specialCooldown = atkStats.cooldown;
@@ -361,47 +379,166 @@ function getCurrentAttackDamage() {
 let currentRoom = null;
 
 const ROOMS = {
-  start_ruins: {
-    name: 'The Shadow Ruins',
+  level_1: {
+    name: 'Stage 1-1: The Outskirts',
+    width: 1500, height: 600,
+    platforms: [
+      { x: 0, y: 440, w: 1500, h: 160 },
+      { x: 400, y: 340, w: 120, h: 20 },
+      { x: 700, y: 240, w: 100, h: 20 }
+    ],
+    gates: [{ x: 1400, y: 340, w: 60, h: 100, dest: 'level_2', type: 'exit' }],
+    bgType: 'ruins',
+    onEnter: () => {
+      enemies.push(createLeech(600, 400));
+      enemies.push(createLeech(900, 400));
+    }
+  },
+  level_2: {
+    name: 'Stage 1-2: Crumbling Path',
     width: 2000, height: 600,
     platforms: [
-      { x: 0, y: 440, w: 2000, h: 160 },
-      { x: 420, y: 340, w: 120, h: 20 },
-      { x: 620, y: 240, w: 100, h: 20 },
-      { x: 980, y: 340, w: 140, h: 20 },
-      { x: 1250, y: 260, w: 110, h: 20 }
+      { x: 0, y: 500, w: 400, h: 100 },
+      { x: 500, y: 400, w: 200, h: 20 },
+      { x: 800, y: 300, w: 200, h: 20 },
+      { x: 1200, y: 400, w: 800, h: 200 }
     ],
     gates: [
-      { x: 1900, y: 340, w: 60, h: 100, dest: 'boss_arena', type: 'exit' }, { x: 50, y: 340, w: 60, h: 100, dest: 'arena_1', type: 'entrance' }
+      { x: 20, y: 400, w: 60, h: 100, dest: 'level_1', type: 'entrance' },
+      { x: 1900, y: 300, w: 60, h: 100, dest: 'level_3', type: 'exit' }
     ],
     bgType: 'ruins',
     onEnter: () => {
-      // Spawn a few initial enemies
-      enemies.push(createLeech(800, 400));
-      enemies.push(createLeech(1200, 400));
+      enemies.push(createLeech(550, 300));
+      enemies.push(createLeech(1400, 300));
+      enemies.push(createLeech(1600, 300));
     }
   },
-  arena_1: {
-    name: 'Survival Arena - The Pit',
+  level_3: {
+    name: 'Stage 1-3: First Ambush',
     width: 1200, height: 600,
     platforms: [
       { x: 0, y: 500, w: 1200, h: 100 },
       { x: 200, y: 380, w: 150, h: 20 },
-      { x: 850, y: 380, w: 150, h: 20 },
-      { x: 500, y: 250, w: 200, h: 20 }
+      { x: 850, y: 380, w: 150, h: 20 }
     ],
     gates: [
-      { x: 20, y: 400, w: 60, h: 100, dest: 'start_ruins', type: 'entrance' } // Can't go back immediately if survival
+      { x: 20, y: 400, w: 60, h: 100, dest: 'level_2', type: 'entrance' },
+      { x: 1100, y: 400, w: 60, h: 100, dest: 'level_4', type: 'exit' }
     ],
     bgType: 'arena',
     isSurvival: true,
-    survivalTime: 60, // 60 seconds survival
+    survivalTime: 30,
+    onEnter: () => { roomTimer = 0; }
+  },
+  level_4: {
+    name: 'Stage 1-4: The Ascent',
+    width: 1000, height: 800,
+    platforms: [
+      { x: 0, y: 700, w: 1000, h: 100 },
+      { x: 300, y: 550, w: 150, h: 20 },
+      { x: 500, y: 400, w: 150, h: 20 },
+      { x: 700, y: 250, w: 150, h: 20 },
+      { x: 0, y: 150, w: 300, h: 20 }
+    ],
+    gates: [
+      { x: 20, y: 600, w: 60, h: 100, dest: 'level_3', type: 'entrance' },
+      { x: 20, y: 50, w: 60, h: 100, dest: 'level_5', type: 'exit' }
+    ],
+    bgType: 'ruins',
     onEnter: () => {
-      roomTimer = 0;
+      enemies.push(createLeech(350, 450));
+      enemies.push(createLeech(550, 300));
+      enemies.push(createLeech(750, 150));
     }
   },
-  boss_arena: {
-    name: 'Boss Duel - The Void Knight',
+  level_5: {
+    name: 'Stage 1-5: The Bridge',
+    width: 2500, height: 600,
+    platforms: [
+      { x: 0, y: 450, w: 2500, h: 150 }
+    ],
+    gates: [
+      { x: 20, y: 350, w: 60, h: 100, dest: 'level_4', type: 'entrance' },
+      { x: 2400, y: 350, w: 60, h: 100, dest: 'level_6', type: 'exit' }
+    ],
+    bgType: 'ruins',
+    onEnter: () => {
+      for(let i=1; i<=5; i++) enemies.push(createLeech(400 * i, 350));
+    }
+  },
+  level_6: {
+    name: 'Stage 1-6: Deep Shadows',
+    width: 1500, height: 600,
+    platforms: [
+      { x: 0, y: 500, w: 300, h: 100 },
+      { x: 400, y: 500, w: 300, h: 100 },
+      { x: 800, y: 500, w: 300, h: 100 },
+      { x: 1200, y: 500, w: 300, h: 100 }
+    ],
+    gates: [
+      { x: 20, y: 400, w: 60, h: 100, dest: 'level_5', type: 'entrance' },
+      { x: 1400, y: 400, w: 60, h: 100, dest: 'level_7', type: 'exit' }
+    ],
+    bgType: 'ruins',
+    onEnter: () => {
+      enemies.push(createLeech(500, 400));
+      enemies.push(createLeech(900, 400));
+    }
+  },
+  level_7: {
+    name: 'Stage 1-7: Slaughter Pit',
+    width: 1200, height: 600,
+    platforms: [
+      { x: 0, y: 500, w: 1200, h: 100 },
+      { x: 300, y: 350, w: 600, h: 20 }
+    ],
+    gates: [
+      { x: 20, y: 400, w: 60, h: 100, dest: 'level_6', type: 'entrance' },
+      { x: 1100, y: 400, w: 60, h: 100, dest: 'level_8', type: 'exit' }
+    ],
+    bgType: 'arena',
+    isSurvival: true,
+    survivalTime: 45,
+    onEnter: () => { roomTimer = 0; }
+  },
+  level_8: {
+    name: 'Stage 1-8: Ruined Halls',
+    width: 1800, height: 600,
+    platforms: [
+      { x: 0, y: 400, w: 1800, h: 200 },
+      { x: 500, y: 250, w: 100, h: 20 },
+      { x: 900, y: 250, w: 100, h: 20 },
+      { x: 1300, y: 250, w: 100, h: 20 }
+    ],
+    gates: [
+      { x: 20, y: 300, w: 60, h: 100, dest: 'level_7', type: 'entrance' },
+      { x: 1700, y: 300, w: 60, h: 100, dest: 'level_9', type: 'exit' }
+    ],
+    bgType: 'ruins',
+    onEnter: () => {
+      enemies.push(createLeech(600, 300));
+      enemies.push(createLeech(1000, 300));
+      enemies.push(createLeech(1400, 300));
+      enemies.push(createLeech(800, 300));
+      enemies.push(createLeech(1200, 300));
+    }
+  },
+  level_9: {
+    name: 'Stage 1-9: Ante-Chamber',
+    width: 1000, height: 600,
+    platforms: [
+      { x: 0, y: 450, w: 1000, h: 150 }
+    ],
+    gates: [
+      { x: 20, y: 350, w: 60, h: 100, dest: 'level_8', type: 'entrance' },
+      { x: 900, y: 350, w: 60, h: 100, dest: 'level_10', type: 'exit' }
+    ],
+    bgType: 'ruins',
+    onEnter: () => {}
+  },
+  level_10: {
+    name: 'Stage 1-10: The Void Knight',
     width: 1000, height: 600,
     platforms: [
       { x: 0, y: 500, w: 1000, h: 100 }
@@ -410,7 +547,6 @@ const ROOMS = {
     bgType: 'arena',
     isBoss: true,
     onEnter: () => {
-      // Spawn Boss
       boss = createBoss(800, 300);
       document.getElementById('boss-ui').style.display = 'block';
     }
@@ -669,7 +805,7 @@ function setupGame() {
   updateProgression();
 
 
-  currentRoom = ROOMS.start_ruins;
+  currentRoom = ROOMS.level_1;
   player.x = 100; player.y = 300;
   kills = 0; souls = 0;
   enemies = []; particles = []; damageTexts = []; projectiles = []; weaponTrails = []; screenShake = 0;
@@ -800,8 +936,14 @@ function update() {
   // Animation (if not attacking/dashing)
   if (!player.attacking && player.dashing <= 0) {
     if (player.invuln > 20) player.animFrame = 9;
-    else if (!player.onGround) player.animFrame = player.jumpsLeft <= 0 ? 4 : 3;
-    else if (Math.abs(player.vx) > 1) player.animFrame = Math.floor(performance.now() / 150) % 2 === 0 ? 1 : 2;
+    else if (!player.onGround) {
+      if (player.jumpsLeft <= 0) {
+         player.animFrame = 12; // Double jump somersault
+      } else {
+         player.animFrame = player.vy < 0 ? 10 : 11; // Jump up or fall
+      }
+    }
+    else if (Math.abs(player.vx) > 1) player.animFrame = Math.floor(performance.now() / 100) % 4 + 1; // Run frames 1-4
     else player.animFrame = 0;
   }
 
@@ -967,27 +1109,34 @@ function setGameOver() {
 }
 
 // ---------- DRAW ----------
-function drawKael(x, y) {
-  if (!sprites.kael || sprites.kael.naturalWidth < 10) {
+function drawPlayer(x, y) {
+  let sprite = sprites[currentHero];
+  if (!sprite || sprite.naturalWidth < 10) {
+    sprite = sprites.kael; // fallback
+  }
+  if (!sprite || sprite.naturalWidth < 10) {
     ctx.fillStyle = getHeroStats().color;
     ctx.fillRect(x, y, player.w, player.h);
     return;
   }
-  const frame = Math.max(0, Math.min(9, player.animFrame));
-  const pad = 8, sx = frame * KAEL_FW + pad, sy = 0, sw = KAEL_FW - pad*2, sh = KAEL_FH;
-  const drawW = 100, drawH = 130, drawX = x + (player.w - drawW)/2, drawY = y + player.h - drawH + 2;
+  const frame = Math.max(0, Math.min(23, player.animFrame));
+  const col = frame % 6;
+  const row = Math.floor(frame / 6);
+  const pad = 8;
+  const sx = col * KAEL_FW + pad, sy = row * KAEL_FH, sw = KAEL_FW - pad*2, sh = KAEL_FH;
+  const drawW = 150, drawH = 150, drawX = x + (player.w - drawW)/2, drawY = y + player.h - drawH + 15;
 
   ctx.save();
-  if (currentHero !== 'kael') {
+  if (currentHero !== 'kael' && sprite === sprites.kael) {
      ctx.filter = `drop-shadow(0 0 10px ${getHeroStats().color}) hue-rotate(90deg) saturate(2)`;
   }
 
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
   if (player.facing < 0) {
     ctx.translate(drawX + drawW, drawY); ctx.scale(-1, 1);
-    ctx.drawImage(sprites.kael, sx, sy, sw, sh, 0, 0, drawW, drawH);
+    ctx.drawImage(sprite, sx, sy, sw, sh, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(sprites.kael, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
+    ctx.drawImage(sprite, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
@@ -998,9 +1147,12 @@ function drawBoss() {
   if (boss.dead) return; // Simple disappear for now
 
   // We reuse Kael sprite but scale it and tint it red
-  const frame = Math.max(0, Math.min(9, boss.animFrame));
-  const pad = 8, sx = frame * KAEL_FW + pad, sy = 0, sw = KAEL_FW - pad*2, sh = KAEL_FH;
-  const drawW = 120, drawH = 160, drawX = boss.x + (boss.w - drawW)/2, drawY = boss.y + boss.h - drawH + 2;
+  const frame = Math.max(0, Math.min(23, boss.animFrame));
+  const col = frame % 6;
+  const row = Math.floor(frame / 6);
+  const pad = 8;
+  const sx = col * KAEL_FW + pad, sy = row * KAEL_FH, sw = KAEL_FW - pad*2, sh = KAEL_FH;
+  const drawW = 180, drawH = 180, drawX = boss.x + (boss.w - drawW)/2, drawY = boss.y + boss.h - drawH + 20;
 
   ctx.save();
   ctx.globalAlpha = boss.hurtTimer > 0 ? 0.5 : 1.0;
@@ -1089,7 +1241,7 @@ function draw() {
 
   enemies.forEach(e => drawLeech(e));
   if (currentRoom && currentRoom.isBoss) drawBoss();
-  if (gameState !== 'transition') drawKael(player.x, player.y);
+  if (gameState !== 'transition') drawPlayer(player.x, player.y);
 
   particles.forEach(p => {
     const alpha = Math.max(0, p.life / p.maxLife);
