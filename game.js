@@ -28,7 +28,9 @@ const HEROES = {
       60: { weapon: 'Eclipse Blade',      mult: 2.0 }
     },
     abilities: {
-      1: { name: 'Shadow Slash', damage: 12, range: 65, knockback: 2.2, duration: 14, type: 'melee', frame: 5 },
+      1: { name: 'Jab', damage: 8, range: 50, knockback: 1.0, duration: 12, type: 'melee', frame: 5 },
+      2: { name: 'Cross', damage: 10, range: 55, knockback: 1.5, duration: 14, type: 'melee', frame: 6 },
+      3: { name: 'Kick', damage: 15, range: 65, knockback: 3.5, duration: 16, type: 'melee', frame: 7 },
       10: { name: 'Rising Arc', damage: 18, range: 75, knockback: 4.5, duration: 18, type: 'melee', frame: 6 },
       20: { name: 'Whirlwind', damage: 20, range: 85, knockback: 5.0, duration: 18, type: 'melee', frame: 6 },
       30: { name: 'Shadow Step', damage: 28, range: 90, knockback: 7.0, duration: 24, type: 'melee', frame: 7 },
@@ -50,7 +52,9 @@ const HEROES = {
     },
     abilities: {
       1: { name: 'Twin Flurry', damage: 6, range: 50, knockback: 1.0, duration: 8, type: 'melee', frame: 5 },
-      10: { name: 'Poison Jab', damage: 8, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
+      2: { name: 'Poison Jab', damage: 8, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
+      3: { name: 'Twin Flurry II', damage: 10, range: 55, knockback: 2.0, duration: 10, type: 'melee', frame: 6 },
+      10: { name: 'Poison Strike', damage: 12, range: 50, knockback: 1.5, duration: 10, type: 'melee', frame: 5 },
       20: { name: 'Blink Strike', damage: 14, range: 60, knockback: -2.0, duration: 14, type: 'melee', frame: 6 }, // Negative knockback for pull-in
       30: { name: 'Shadow Flurry', damage: 20, range: 65, knockback: 1.5, duration: 12, type: 'melee', frame: 6 },
       45: { name: 'Umbral Execution', damage: 30, range: 70, knockback: 3.5, duration: 18, type: 'melee', frame: 7, teleport: 30 },
@@ -188,7 +192,9 @@ const player = {
   comboCount: 0, comboTimer: 0, lastAttackTime: 0,
   animFrame: 0,
   _jumpHeld: false,
-  dashing: 0, dashCooldown: 0
+  dashing: 0, dashCooldown: 0,
+  _lastRightTap: 0, _lastLeftTap: 0,
+  _rightHeld: false, _leftHeld: false
 };
 
 const COMBO_WINDOW = 55;
@@ -198,12 +204,14 @@ function getHeroStats() { return HEROES[currentHero]; }
 function getUnlockedAbilities() {
   const stats = getHeroStats();
   const unlocked = [];
-  const levelReqs = [1, 10, 20, 30, 45, 60];
-  for (let i = 0; i < levelReqs.length; i++) {
-    if (player.level >= levelReqs[i]) {
-       const key = Object.keys(stats.abilities).find(k => k !== 'special' && parseInt(k) === levelReqs[i]);
-       if (key) unlocked.push(stats.abilities[key]);
-    }
+  // Use keys in order they are defined for normal attacks
+  for (let k in stats.abilities) {
+     if (k === 'special') continue;
+     // For level 1, give access to 1,2,3 for combo testing, otherwise require level
+     let req = parseInt(k);
+     if (req <= 3 || player.level >= req) {
+         unlocked.push(stats.abilities[k]);
+     }
   }
   return unlocked;
 }
@@ -267,7 +275,14 @@ function registerAttack(type, isSpecial) {
   const now = performance.now();
   const stats = getHeroStats();
 
-  if (!isSpecial && now - player.lastAttackTime > 750) player.comboCount = 0;
+  if (!isSpecial) {
+      if (now - player.lastAttackTime > 1000) {
+          player.comboCount = 1;
+      } else {
+          player.comboCount++;
+      }
+      updateComboUI();
+  }
 
   const atkStats = stats.abilities[type];
   if (!atkStats) return; // Failsafe
@@ -712,11 +727,12 @@ const keys = {};
 let joyDX = 0, joyActive = false;
 
 window.addEventListener('keydown', e => {
+
   keys[e.key.toLowerCase()] = true;
   if (gameState !== 'playing') return;
   if (['z', 'j'].includes(e.key.toLowerCase())) tryAttack();
   if (e.key.toLowerCase() === 'x') trySpecial();
-  if (e.key.toLowerCase() === 'shift' || e.key.toLowerCase() === 'c') tryDash();
+  // Removed shift/c dash binding per requirement
 });
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
@@ -740,15 +756,16 @@ function setupJoystick() {
   area.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
 }
 
+window.tryAttack = tryAttack;
 function tryAttack() {
-  if (player.attackTimer > 6 || player.dashing > 0 || player.recoveryTimer > 0) return;
+  if (player.attackTimer > 12 || player.dashing > 0 || player.recoveryTimer > 0) return;
   const stats = getHeroStats();
   const unlocked = getUnlockedAbilities();
   if (unlocked.length === 0) return;
 
   let nextCombo = 1;
   const now = performance.now();
-  if (now - player.lastAttackTime < 800 && player.comboCount > 0) {
+  if (now - player.lastAttackTime < 1000 && player.comboCount > 0) {
       nextCombo = player.comboCount + 1;
   }
 
@@ -756,10 +773,21 @@ function tryAttack() {
       nextCombo = 1; // Reset if max reached for current level
   }
 
-  // We need to pass the actual ability key from stats.abilities
-  // Assuming keys are sequential 1, 10, 20... map index back to key
-  const levelReqs = [1, 10, 20, 30, 45, 60];
-  registerAttack(levelReqs[nextCombo - 1], false);
+  // Find which unlocked abilities they have
+
+  let abilityObjToUse = unlocked[nextCombo - 1];
+  if (!abilityObjToUse) {
+      abilityObjToUse = unlocked[0]; // fallback
+      player.comboCount = 0; // Reset combo if we fallback
+  }
+
+  // Find the original key
+  let originalKey = '1';
+  for (let k in stats.abilities) {
+      if (stats.abilities[k] === abilityObjToUse) originalKey = k;
+  }
+
+  registerAttack(originalKey, false);
 }
 
 function trySpecial() {
@@ -779,6 +807,7 @@ function tryDash() {
 
 document.getElementById('attack-btn').addEventListener('touchstart', e => { e.preventDefault(); tryAttack(); });
 document.getElementById('attack-btn').addEventListener('mousedown', tryAttack);
+
 document.getElementById('jump-btn').addEventListener('touchstart', e => { e.preventDefault(); tryJump(); });
 document.getElementById('jump-btn').addEventListener('mousedown', tryJump);
 function tryJump() {
@@ -855,16 +884,38 @@ function update() {
     player.animFrame = 2; // Use run frame for now
     spawnParticles(player.x + player.w/2, player.y + player.h/2, stats.color, 2, 'dash');
   } else {
+    // Dash via double-tap
+    if (keys['arrowright'] || keys['d']) {
+       if (!player._rightHeld) {
+           const now = performance.now();
+           if (now - player._lastRightTap < 250) { tryDash(); }
+           player._lastRightTap = now;
+           player._rightHeld = true;
+       }
+    } else { player._rightHeld = false; }
+
+    if (keys['arrowleft'] || keys['a']) {
+       if (!player._leftHeld) {
+           const now = performance.now();
+           if (now - player._lastLeftTap < 250) { tryDash(); }
+           player._lastLeftTap = now;
+           player._leftHeld = true;
+       }
+    } else { player._leftHeld = false; }
+
     // Normal movement
     let move = 0;
     if (keys['a'] || keys['arrowleft']) move = -1;
     if (keys['d'] || keys['arrowright']) move = 1;
     if (joyActive) move = joyDX;
 
+    if (!player.attacking && move !== 0) {
+       player.facing = move > 0 ? 1 : -1;
+    }
+
     if (Math.abs(move) > 0.15) {
       if (!player.attacking) player.vx = move * stats.speed;
       else player.vx = move * stats.speed * 0.3; // Slow while attacking
-      if (!player.attacking) player.facing = move > 0 ? 1 : -1;
     } else {
       player.vx *= 0.75;
     }
@@ -928,10 +979,12 @@ function update() {
 
   if (player.invuln > 0) player.invuln--;
 
-  if (player.comboTimer > 0) {
-    player.comboTimer--;
-    if (player.comboTimer <= 0) { player.comboCount = 0; updateComboUI(); }
+  if (player.comboCount > 0 && performance.now() - player.lastAttackTime > 1500) {
+      player.comboCount = 0;
+      updateComboUI();
   }
+
+  // Removed comboTimer logic in favor of lastAttackTime
 
   // Animation (if not attacking/dashing)
   if (!player.attacking && player.dashing <= 0) {
@@ -1311,3 +1364,5 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 setupJoystick();
 loadSprites(() => console.log('Sprites ready'));
 loop();
+
+window.tryAttack = function() { tryAttack(); };
