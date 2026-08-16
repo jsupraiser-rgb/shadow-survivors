@@ -645,6 +645,15 @@ document.getElementById('attack-btn').addEventListener('touchstart', e => { e.pr
 document.getElementById('attack-btn').addEventListener('mousedown', tryAttack);
 document.getElementById('jump-btn').addEventListener('touchstart', e => { e.preventDefault(); tryJump(); });
 document.getElementById('jump-btn').addEventListener('mousedown', tryJump);
+function tryJump() {
+  if (player.jumpsLeft > 0) {
+    player.vy = -12;
+    player.jumpsLeft--;
+    player.onGround = false;
+    spawnParticles(player.x, player.y + player.h, '#aaa', 5);
+  }
+}
+
 document.getElementById('special-btn').addEventListener('touchstart', e => { e.preventDefault(); trySpecial(); });
 document.getElementById('special-btn').addEventListener('mousedown', trySpecial);
 
@@ -1117,18 +1126,25 @@ function loop() {
 
 // ---------- DOM BINDINGS ----------
 document.querySelectorAll('.hero-card').forEach(card => {
-  card.addEventListener('click', () => {
+  const selectHero = (e) => {
+    if (e && e.type === 'touchend') e.preventDefault();
     document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
     currentHero = card.dataset.hero;
     document.getElementById('start-game-btn').classList.add('visible');
-  });
+  };
+  card.addEventListener('click', selectHero);
+  card.addEventListener('touchend', selectHero);
 });
 
-document.getElementById('start-game-btn').addEventListener('click', () => {
+const startBtn = document.getElementById('start-game-btn');
+const startGame = (e) => {
+  if (e && e.type === 'touchend') e.preventDefault();
   document.getElementById('hero-select').style.display = 'none';
   setupGame();
-});
+};
+startBtn.addEventListener('click', startGame);
+startBtn.addEventListener('touchend', startGame);
 
 document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('message').style.display = 'none';
@@ -1143,4 +1159,3 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 setupJoystick();
 loadSprites(() => console.log('Sprites ready'));
 loop();
-}
