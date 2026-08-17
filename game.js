@@ -77,6 +77,9 @@ function loadSprites(callback) {
 
   sprites.kael.src = 'kael_sheet.png';
   sprites.leech.src = 'leech_sheet.png';
+  sprites.lyra = new Image();
+  sprites.lyra.onload = () => console.log('Lyra sheet OK', sprites.lyra.naturalWidth);
+  sprites.lyra.src = 'lyra_sheet.png';
 }
 
 
@@ -87,6 +90,7 @@ function loadSprites(callback) {
 // Kael: 6 frames  |  Leech: 5 frames
 let KAEL_FW = 332, KAEL_FH = 388;  // full 22-pose sheet
 let LEECH_FW = 64, LEECH_FH = 64;
+let LYRA_FW = 128, LYRA_FH = 170;
 
 function detectFrameSizes() { /* disabled - sizes set in loadSprites */ }
 
@@ -97,7 +101,108 @@ let souls = 0;
 let cameraX = 0;
 let levelComplete = false;
 
-// ---------- PLAYER (Kael) ----------
+
+// ---------- HEROES (from character roster) ----------
+const HEROES = {
+  kael: {
+    id: 'kael',
+    name: 'Kael',
+    role: 'Balanced DPS',
+    weapon: 'Bare Hands',
+    style: 'Martial Arts',
+    color: '#9b7bff',
+    quote: 'Discipline Creates Power.',
+    hp: 100,
+    walkSpeed: 2.6,
+    runSpeed: 5.2,
+    jumpForce: -11.8,
+    doubleJumpForce: -10.5,
+    damageMult: 1.0,
+    attackRange: 78,
+    // sprite uses Kael sheet
+    useKaelSprite: true
+  },
+  lyra: {
+    id: 'lyra',
+    name: 'Lyra',
+    role: 'Fast Assassin',
+    weapon: 'Twin Daggers',
+    style: 'Ninjutsu',
+    color: '#e080ff',
+    quote: "Strike Before You're Seen.",
+    hp: 80,
+    walkSpeed: 3.2,
+    runSpeed: 6.4,
+    jumpForce: -12.2,
+    doubleJumpForce: -11.0,
+    damageMult: 0.9,
+    attackRange: 70,
+    useKaelSprite: false,
+    bodyColor: '#2a1035',
+    accent: '#c040ff'
+  },
+  vex: {
+    id: 'vex',
+    name: 'Vex',
+    role: 'Heavy Tank',
+    weapon: 'Gauntlets',
+    style: 'Brawler',
+    color: '#ff6644',
+    quote: 'Stand. Break. Protect.',
+    hp: 160,
+    walkSpeed: 2.0,
+    runSpeed: 4.0,
+    jumpForce: -10.5,
+    doubleJumpForce: -9.5,
+    damageMult: 1.35,
+    attackRange: 85,
+    useKaelSprite: false,
+    bodyColor: '#4a2010',
+    accent: '#ff4422'
+  },
+  nyx: {
+    id: 'nyx',
+    name: 'Nyx',
+    role: 'Ranged DPS',
+    weapon: 'Energy Pistols',
+    style: 'Tech & Magic',
+    color: '#66aaff',
+    quote: 'Precision. Power. Oblivion.',
+    hp: 85,
+    walkSpeed: 2.8,
+    runSpeed: 5.5,
+    jumpForce: -11.5,
+    doubleJumpForce: -10.2,
+    damageMult: 1.1,
+    attackRange: 160,
+    useKaelSprite: false,
+    bodyColor: '#1a1a2e',
+    accent: '#4488ff'
+  }
+};
+
+let selectedHero = 'kael';
+
+function applyHero(id) {
+  const h = HEROES[id] || HEROES.kael;
+  selectedHero = h.id;
+  player.maxHp = h.hp;
+  player.hp = h.hp;
+  player.walkSpeed = h.walkSpeed;
+  player.runSpeed = h.runSpeed;
+  player.jumpForce = h.jumpForce;
+  player.doubleJumpForce = h.doubleJumpForce;
+  player.damageMult = h.damageMult || 1;
+  player.attackRange = h.attackRange || 78;
+  player.heroId = h.id;
+  player.heroColor = h.color;
+  const wl = document.getElementById('weapon-label');
+  if (wl) wl.textContent = h.weapon;
+  const hpEl = document.getElementById('hp');
+  if (hpEl) hpEl.textContent = Math.floor(player.hp);
+}
+
+// ---------- PLAYER ----------
 const player = {
   x: 120, y: 0, w: 70, h: 100,
   vx: 0, vy: 0,
@@ -118,6 +223,10 @@ const player = {
   comboCount: 0,
   comboTimer: 0,
   lastAttackTime: 0,
+  damageMult: 1,
+  attackRange: 78,
+  heroId: 'kael',
+  heroColor: '#9b7bff',
   animFrame: 0,
   _jumpHeld: false
 };
@@ -601,7 +710,90 @@ function update() {
 }
 
 // ---------- DRAW ----------
+
+
+function drawLyra(x, y) {
+  LYRA_FW = Math.floor(sprites.lyra.naturalWidth / 10) || 128;
+  LYRA_FH = sprites.lyra.naturalHeight || 170;
+  let frame = Math.max(0, Math.min(9, player.animFrame));
+  // map kael-style animFrame to lyra 0-9
+  if (player.invuln > 20) frame = 9;
+  else if (player.attacking) frame = Math.min(8, 5 + (player.attackType || 0));
+  else if (!player.onGround) frame = 3;
+  else if (Math.abs(player.vx) > 0.8) frame = player.running ? 2 : 1;
+  else frame = 0;
+  const pad = 6;
+  const sx = frame * LYRA_FW + pad;
+  const sw = LYRA_FW - pad * 2;
+  const drawW = 100, drawH = 130;
+  const drawX = x + (player.w - drawW) / 2;
+  const drawY = y + player.h - drawH + 2;
+  ctx.save();
+  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
+  if (player.facing < 0) {
+    ctx.translate(drawX + drawW, drawY);
+    ctx.scale(-1, 1);
+    ctx.drawImage(sprites.lyra, sx, 0, sw, LYRA_FH, 0, 0, drawW, drawH);
+  } else {
+    ctx.drawImage(sprites.lyra, sx, 0, sw, LYRA_FH, drawX, drawY, drawW, drawH);
+  }
+  ctx.restore();
+}
+
+function drawHeroFallback(x, y) {
+  const h = HEROES[player.heroId] || HEROES.kael;
+  const col = h.accent || h.color || '#9b7bff';
+  const body = h.bodyColor || '#333';
+  ctx.save();
+  if (player.facing < 0) {
+    ctx.translate(x + player.w, y);
+    ctx.scale(-1, 1);
+    x = 0; y = 0;
+  }
+  // simple stylized body
+  ctx.fillStyle = body;
+  ctx.fillRect(x + 18, y + 28, 34, 42);
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.arc(x + 35, y + 18, 14, 0, Math.PI * 2);
+  ctx.fill();
+  // arms / weapon hint
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  if (player.attacking) {
+    ctx.moveTo(x + 50, y + 40);
+    ctx.lineTo(x + 75, y + 35);
+  } else {
+    ctx.moveTo(x + 18, y + 40);
+    ctx.lineTo(x + 8, y + 55);
+    ctx.moveTo(x + 52, y + 40);
+    ctx.lineTo(x + 62, y + 55);
+  }
+  ctx.stroke();
+  // legs
+  ctx.beginPath();
+  ctx.moveTo(x + 25, y + 70);
+  ctx.lineTo(x + 22, y + 95);
+  ctx.moveTo(x + 42, y + 70);
+  ctx.lineTo(x + 48, y + 95);
+  ctx.stroke();
+  // name tag
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px sans-serif';
+  ctx.fillText(h.name, x + 20, y - 4);
+  ctx.restore();
+}
+
 function drawKael(x, y) {
+  if (player.heroId === 'lyra' && sprites.lyra && sprites.lyra.naturalWidth > 10) {
+    drawLyra(x, y);
+    return;
+  }
+  if (player.heroId && player.heroId !== 'kael' && player.heroId !== 'lyra') {
+    drawHeroFallback(x, y);
+    return;
+  }
   if (!sprites.kael || sprites.kael.naturalWidth < 10) {
     ctx.fillStyle = '#9b6dff';
     ctx.fillRect(x, y, player.w, player.h);
@@ -780,6 +972,7 @@ function loop() {
 }
 
 function startGame() {
+  applyHero(selectedHero);
   document.getElementById('message').style.display = 'none';
   gameRunning = true;
   setupLevel1();
@@ -802,3 +995,15 @@ setupJoystick();
 document.getElementById('start-btn').onclick = startGame;
 loadSprites(() => console.log('Sprites ready'));
 loop();
+
+
+// Hero select cards
+document.querySelectorAll('.hero-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedHero = card.dataset.hero;
+    applyHero(selectedHero);
+  });
+});
+applyHero('kael');
