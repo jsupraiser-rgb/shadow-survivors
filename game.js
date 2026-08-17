@@ -167,10 +167,9 @@ function loadSprites(callback) {
   sprites.leech.onerror = oneDone;
 
   sprites.kael.src = 'kael_sheet.png';
-  // Use kael_sheet for other heroes for now until provided
-  sprites.lyra.src = 'kael_sheet.png';
-  sprites.vex.src = 'kael_sheet.png';
-  sprites.nyx.src = 'kael_sheet.png';
+  sprites.lyra.src = 'lyra_sheet.png';
+  sprites.vex.src = 'vex_sheet.png';
+  sprites.nyx.src = 'nyx_sheet.png';
   sprites.leech.src = 'leech_sheet.png';
 }
 
@@ -278,10 +277,7 @@ function registerAttack(type, isSpecial) {
   if (!isSpecial) {
       if (now - player.lastAttackTime > 1000) {
           player.comboCount = 1;
-      } else {
-          player.comboCount++;
       }
-      updateComboUI();
   }
 
   const atkStats = stats.abilities[type];
@@ -828,6 +824,8 @@ document.getElementById('special-btn').addEventListener('touchstart', e => { e.p
 document.getElementById('special-btn').addEventListener('mousedown', trySpecial);
 
 // ---------- LOGIC ----------
+let introTimer = 0;
+
 function setupGame() {
   const stats = getHeroStats();
   player.maxHp = stats.hp;
@@ -838,7 +836,6 @@ function setupGame() {
   player.nextXp = 100;
   updateProgression();
 
-
   currentRoom = ROOMS.level_1;
   player.x = 100; player.y = 300;
   kills = 0; souls = 0;
@@ -846,24 +843,17 @@ function setupGame() {
   if (currentRoom.onEnter) currentRoom.onEnter();
 
   gameState = 'intro';
-  document.getElementById('ui').style.display = 'flex';
-  document.getElementById('controls').style.display = 'flex';
-  document.getElementById('level-name').style.display = 'block';
-  document.getElementById('level-name').textContent = currentRoom.name;
+  introTimer = 0; // Reset intro timer
 
-  // Fade out black overlay
+  // Hide UI during cinematic
+  document.getElementById('ui').style.display = 'none';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('level-name').style.display = 'none';
+
   const overlay = document.getElementById('intro-overlay');
   overlay.style.display = 'block';
   overlay.style.opacity = '1';
-
-  // Need to force reflow for transition to work if just set
-  void overlay.offsetWidth;
-  overlay.style.opacity = '0';
-
-  setTimeout(() => {
-    overlay.style.display = 'none';
-    gameState = 'playing';
-  }, 3000);
+  overlay.style.transition = 'none';
 }
 
 function update() {
@@ -876,7 +866,38 @@ function update() {
      if (weaponTrails[i].life <= 0) weaponTrails.splice(i, 1);
   }
 
-  if (gameState !== 'playing') return;
+  if (gameState === 'intro') {
+    introTimer++;
+    const overlay = document.getElementById('intro-overlay');
+    if (introTimer < 60) {
+      overlay.style.opacity = '1';
+    } else if (introTimer === 60) {
+      overlay.style.transition = 'opacity 2s ease-in-out';
+      overlay.style.opacity = '0';
+    } else if (introTimer === 180) {
+      // Show hero lore as cinematic text
+      let loreText = getHeroStats().name + " Awakens";
+      if (currentHero === 'kael') loreText = "The Cursed Swordsman Awakens";
+      if (currentHero === 'lyra') loreText = "The Last Assassin Returns";
+      if (currentHero === 'vex')  loreText = "The Unbreakable War-Chief Rises";
+      if (currentHero === 'nyx')  loreText = "The Void-Touched Researcher Steps Forth";
+
+      spawnDamageText(canvas.width / 2, canvas.height / 2, loreText, getHeroStats().color);
+    } else if (introTimer === 240) {
+      // Cinematic hero action
+      player.facing = 1;
+      tryAttack();
+    } else if (introTimer > 360) {
+      overlay.style.display = 'none';
+      document.getElementById('ui').style.display = 'flex';
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('level-name').style.display = 'block';
+      document.getElementById('level-name').textContent = currentRoom.name;
+      gameState = 'playing';
+    }
+  }
+
+  if (gameState !== 'playing' && gameState !== 'intro') return;
 
   const stats = getHeroStats();
 
@@ -1185,9 +1206,6 @@ function drawPlayer(x, y) {
   const drawW = 150, drawH = 150, drawX = x + (player.w - drawW)/2, drawY = y + player.h - drawH + 15;
 
   ctx.save();
-  if (currentHero !== 'kael' && sprite === sprites.kael) {
-     ctx.filter = `drop-shadow(0 0 10px ${getHeroStats().color}) hue-rotate(90deg) saturate(2)`;
-  }
 
   if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
   if (player.facing < 0) {
