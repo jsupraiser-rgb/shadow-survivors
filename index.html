@@ -172,6 +172,40 @@
       font-size: 16px;
       font-weight: 600;
     }
+  
+    #hero-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+      max-width: 360px;
+      width: 100%;
+    }
+    .hero-card {
+      background: rgba(20,15,35,0.95);
+      border: 2px solid #444;
+      border-radius: 10px;
+      padding: 8px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .hero-card.selected {
+      border-color: #a070ff;
+      box-shadow: 0 0 12px #7040c0;
+      transform: scale(1.03);
+    }
+    .hero-card .name { font-weight: 700; font-size: 14px; }
+    .hero-card .role { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .hero-card.kael { border-color: #6a4cff; }
+    .hero-card.lyra { border-color: #c040ff; }
+    .hero-card.vex { border-color: #ff4422; }
+    .hero-card.nyx { border-color: #4488ff; }
+    .hero-card.kael.selected { border-color: #9b7bff; }
+    .hero-card.lyra.selected { border-color: #e080ff; }
+    .hero-card.vex.selected { border-color: #ff6644; }
+    .hero-card.nyx.selected { border-color: #66aaff; }
+
   </style>
 </head>
 <body>
@@ -182,7 +216,7 @@
       <div class="stat">❤️ <span id="hp">100</span></div>
       <div class="stat">💀 <span id="kills">0</span></div>
       <div class="stat">✨ <span id="souls">0</span></div>
-      <div class="stat">👊 Bare Hands</div>
+      <div class="stat">👊 <span id="weapon-label">Bare Hands</span></div>
       <div class="stat" id="combo-counter">
         COMBO <span id="combo-num">0</span>
         <span id="combo-mult" style="color:#ffcc66; margin-left:4px;"></span>
@@ -208,12 +242,28 @@
     <div id="message">
       <h1>Shadow Survivors</h1>
       <p><strong>Level 1 – Dust of Champions</strong></p>
-      <p>The arena has fallen. Survive the first Void wave.</p>
-      <p style="margin-top:12px;font-size:13px;color:#aaa">
-        Move with joystick<br>
-        👊 Attack (Jab → Cross → Spin Kick)<br>
-        ⬆ Jump / Double Jump<br>
-        💥 Heavy Fist
+      <p>Choose your champion</p>
+      <div id="hero-select">
+        <div class="hero-card kael selected" data-hero="kael">
+          <div class="name" style="color:#9b7bff">KAEL</div>
+          <div class="role">Balanced DPS · Martial Arts</div>
+        </div>
+        <div class="hero-card lyra" data-hero="lyra">
+          <div class="name" style="color:#e080ff">LYRA</div>
+          <div class="role">Fast Assassin · Twin Daggers</div>
+        </div>
+        <div class="hero-card vex" data-hero="vex">
+          <div class="name" style="color:#ff6644">VEX</div>
+          <div class="role">Heavy Tank · Gauntlets</div>
+        </div>
+        <div class="hero-card nyx" data-hero="nyx">
+          <div class="name" style="color:#66aaff">NYX</div>
+          <div class="role">Ranged · Energy Pistols</div>
+        </div>
+      </div>
+      <p style="margin-top:8px;font-size:12px;color:#aaa">
+        Walk = single direction · Run = double-tap<br>
+        👊 Attack combo · ⬆ Jump · 💥 Special
       </p>
       <button id="start-btn">Start Level 1</button>
     </div>
