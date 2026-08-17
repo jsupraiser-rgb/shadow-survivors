@@ -725,6 +725,11 @@ function transitionToRoom(roomId, spawnX, spawnY) {
 // ---------- INPUT ----------
 const keys = {};
 let joyDX = 0, joyActive = false;
+// Double-tap direction = run
+let lastDirTap = 0;      // -1 left, 1 right, 0 none
+let lastDirTapTime = 0;
+const DIR_TAP_MS = 280;
+
 
 window.addEventListener('keydown', e => {
 
