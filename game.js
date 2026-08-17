@@ -102,6 +102,9 @@ const player = {
   x: 120, y: 0, w: 70, h: 100,
   vx: 0, vy: 0,
   speed: 4.4,
+  walkSpeed: 2.6,
+  runSpeed: 5.2,
+  running: false,
   jumpForce: -11.8,
   doubleJumpForce: -10.5,
   onGround: false,
@@ -208,9 +211,26 @@ const exitGate = { x: 1860, y: 230, w: 50, h: 70 };
 let enemies = [];
 let particles = [];
 
+function createSkeleton(x, y) {
+  return {
+    type: 'skeleton',
+    x, y, w: 48, h: 70,
+    hp: 40, maxHp: 40,
+    speed: 1.4 + Math.random() * 0.4,
+    facing: -1,
+    hurtTimer: 0,
+    animFrame: 0,
+    animTimer: 0,
+    dead: false,
+    deathTimer: 0,
+    attackCooldown: 0
+  };
+}
+
 function createLeech(x, y) {
   return {
-    x, y, w: 72, h: 64,
+    type: 'leech',
+    x, y, w: 64, h: 56,
     hp: 28, maxHp: 28,
     speed: 1.15 + Math.random() * 0.3,
     facing: -1,
@@ -242,19 +262,19 @@ function setupLevel1() {
   player.animFrame = 0;
 
   enemies.push(createLeech(380, 300));
-  enemies.push(createLeech(460, 300));
-  enemies.push(createLeech(700, 300));
+  enemies.push(createLeech(500, 300));
+  enemies.push(createSkeleton(650, 280));
   enemies.push(createLeech(780, 190));
-  enemies.push(createLeech(860, 300));
-  enemies.push(createLeech(1100, 300));
-  enemies.push(createLeech(1180, 300));
+  enemies.push(createSkeleton(900, 280));
+  enemies.push(createLeech(1050, 300));
+  enemies.push(createSkeleton(1180, 280));
   enemies.push(createLeech(1300, 200));
-  enemies.push(createLeech(1380, 300));
-  enemies.push(createLeech(1600, 300));
-  enemies.push(createLeech(1680, 300));
+  enemies.push(createSkeleton(1400, 280));
+  enemies.push(createLeech(1550, 300));
+  enemies.push(createSkeleton(1650, 280));
   enemies.push(createLeech(1750, 300));
-  enemies.push(createLeech(1620, 240));
-  enemies.push(createLeech(1700, 240));
+  enemies.push(createSkeleton(1700, 220));
+  enemies.push(createLeech(1480, 300));
 
   document.getElementById('hp').textContent = 100;
   document.getElementById('kills').textContent = 0;
@@ -289,11 +309,30 @@ function spawnParticles(x, y, color, n = 8, type = 'hit') {
 // ---------- INPUT ----------
 const keys = {};
 let joyDX = 0, joyActive = false;
+// Double-tap direction = run
+let lastDirTap = 0;      // -1 left, 1 right, 0 none
+let lastDirTapTime = 0;
+const DIR_TAP_MS = 280;
+
 
 window.addEventListener('keydown', e => {
-  keys[e.key.toLowerCase()] = true;
-  if (['z', 'j'].includes(e.key.toLowerCase())) tryAttack();
-  if (e.key.toLowerCase() === 'x') tryHeavy();
+  const k = e.key.toLowerCase();
+  if (!keys[k]) {
+    // fresh press for double-tap detect
+    if (k === 'a' || k === 'arrowleft') {
+      const t = performance.now();
+      if (lastDirTap === -1 && t - lastDirTapTime < DIR_TAP_MS) player.running = true;
+      lastDirTap = -1; lastDirTapTime = t;
+    }
+    if (k === 'd' || k === 'arrowright') {
+      const t = performance.now();
+      if (lastDirTap === 1 && t - lastDirTapTime < DIR_TAP_MS) player.running = true;
+      lastDirTap = 1; lastDirTapTime = t;
+    }
+  }
+  keys[k] = true;
+  if (['z', 'j'].includes(k)) tryAttack();
+  if (k === 'x') tryHeavy();
 });
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
@@ -378,8 +417,25 @@ function update() {
   if (keys['d'] || keys['arrowright']) move = 1;
   if (joyActive) move = joyDX;
 
+  // Keyboard double-tap run
+  const now = performance.now();
+  if (keys['a'] || keys['arrowleft']) {
+    if (lastDirTap === -1 && now - lastDirTapTime < DIR_TAP_MS) player.running = true;
+  }
+  if (keys['d'] || keys['arrowright']) {
+    if (lastDirTap === 1 && now - lastDirTapTime < DIR_TAP_MS) player.running = true;
+  }
+  // Joystick: push far = run, mild = walk
+  if (joyActive) {
+    player.running = Math.abs(joyDX) > 0.65;
+  }
+  if (Math.abs(move) < 0.15) {
+    player.running = false;
+  }
+
   if (Math.abs(move) > 0.15) {
-    player.vx = move * player.speed;
+    const spd = player.running ? player.runSpeed : player.walkSpeed;
+    player.vx = move * spd;
     player.facing = move > 0 ? 1 : -1;
   } else {
     player.vx *= 0.78;
@@ -579,24 +635,28 @@ function drawKael(x, y) {
   ctx.restore();
 }
 
-function drawLeech(e) {
+function drawEnemy(e) {
+  if (e.type === 'skeleton') {
+    drawSkeleton(e);
+    return;
+  }
+  // Leech - larger, cleaner
   if (!sprites.leech || sprites.leech.naturalWidth < 10) {
     ctx.fillStyle = '#6a3090';
     ctx.beginPath();
-    ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
+    ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2.2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#c9a0ff';
+    ctx.beginPath();
+    ctx.arc(e.x + e.w/2 + e.facing*6, e.y + e.h/2 - 4, 6, 0, Math.PI*2);
     ctx.fill();
     return;
   }
-
   const frame = Math.max(0, Math.min(4, e.animFrame));
   const sx = frame * LEECH_FW;
-
-  // Bigger leech on screen
-  const dw = 80;
-  const dh = 70;
+  const dw = 72, dh = 62;
   const dx = e.x + (e.w - dw) / 2;
   const dy = e.y + e.h - dh;
-
   ctx.save();
   if (e.facing < 0) {
     ctx.translate(dx + dw, dy);
@@ -605,6 +665,63 @@ function drawLeech(e) {
   } else {
     ctx.drawImage(sprites.leech, sx, 0, LEECH_FW, LEECH_FH, dx, dy, dw, dh);
   }
+  ctx.restore();
+}
+
+function drawSkeleton(e) {
+  const x = e.x, y = e.y, w = e.w, h = e.h;
+  ctx.save();
+  if (e.facing < 0) {
+    ctx.translate(x + w, y);
+    ctx.scale(-1, 1);
+  } else {
+    ctx.translate(x, y);
+  }
+  // body
+  ctx.fillStyle = e.hurtTimer > 0 ? '#fff0f0' : '#e8e0d4';
+  // head
+  ctx.beginPath();
+  ctx.arc(w*0.5, h*0.18, w*0.22, 0, Math.PI*2);
+  ctx.fill();
+  // eyes
+  ctx.fillStyle = '#ff3333';
+  ctx.fillRect(w*0.38, h*0.14, 5, 5);
+  ctx.fillRect(w*0.55, h*0.14, 5, 5);
+  // torso
+  ctx.fillStyle = e.hurtTimer > 0 ? '#fff0f0' : '#d4cbb8';
+  ctx.fillRect(w*0.32, h*0.32, w*0.36, h*0.32);
+  // ribs
+  ctx.strokeStyle = '#a09080';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(w*0.35, h*0.38 + i*7);
+    ctx.lineTo(w*0.65, h*0.38 + i*7);
+    ctx.stroke();
+  }
+  // arms
+  ctx.strokeStyle = '#e8e0d4';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(w*0.32, h*0.36);
+  ctx.lineTo(w*0.08, h*0.55);
+  ctx.moveTo(w*0.68, h*0.36);
+  ctx.lineTo(w*0.92, h*0.5);
+  ctx.stroke();
+  // legs (walk cycle)
+  const swing = Math.sin(e.animTimer * 0.25) * 8;
+  ctx.beginPath();
+  ctx.moveTo(w*0.4, h*0.64);
+  ctx.lineTo(w*0.35, h*0.95 + (e.animFrame===1?swing:0));
+  ctx.moveTo(w*0.6, h*0.64);
+  ctx.lineTo(w*0.65, h*0.95 - (e.animFrame===1?swing:0));
+  ctx.stroke();
+  // bone club
+  ctx.fillStyle = '#c4b8a0';
+  ctx.fillRect(w*0.88, h*0.42, 10, 28);
+  ctx.beginPath();
+  ctx.arc(w*0.93, h*0.4, 7, 0, Math.PI*2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -640,7 +757,7 @@ function draw() {
   ctx.font = '12px sans-serif';
   ctx.fillText('EXIT', exitGate.x + 10, exitGate.y - 8);
 
-  enemies.forEach(e => drawLeech(e));
+  enemies.forEach(e => drawEnemy(e));
   drawKael(player.x, player.y);
 
   particles.forEach(p => {
