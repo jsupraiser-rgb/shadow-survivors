@@ -1,0 +1,10 @@
+--- game.js
++++ game.js
+@@ -770,7 +770,7 @@
+
+     gameState = 'playing';
+     document.getElementById('intro-overlay').style.opacity = '0';
+-    setTimeout(() => { document.getElementById('intro-overlay').style.display = 'none'; }, 500); // 500ms is transition time (shorter for rooms)
++    setTimeout(() => { document.getElementById('intro-overlay').style.display = 'none'; }, 3000); // Wait for CSS transition (3s) to finish
+   }, 1000);
+ }

@@ -363,7 +363,7 @@
 
 
     <div id="boss-ui" style="display: none; position: absolute; top: 80px; left: 50%; transform: translateX(-50%); /* overridden above */ width: 60%; z-index: 20;">
-      <div style="text-align: center; color: #ff5555; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; text-shadow: 0 0 5px red;">Void Knight</div>
+      <div id="boss-name-ui" style="text-align: center; color: #ff5555; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; text-shadow: 0 0 5px red;">Void Knight</div>
       <div style="width: 100%; height: 12px; background: #222; border: 2px solid #555; border-radius: 6px; overflow: hidden;">
         <div id="boss-hp-fill" style="width: 100%; height: 100%; background: linear-gradient(to right, #800, #f00); transition: width 0.2s;"></div>
       </div>
@@ -385,8 +385,20 @@
       </div>
     </div>
 
+    <!-- Main Menu / Prologue Screen -->
+    <div id="main-menu" style="position: absolute; inset: 0; background: #050508; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 60; text-align: center; padding: 20px;">
+      <h1 class="shadow-title">Shadow Survivors</h1>
+      <h2 style="color: #a070ff; margin-bottom: 20px; font-weight: 300; letter-spacing: 2px;">The Last Tournament</h2>
+      <p style="color: #aaa; max-width: 650px; line-height: 1.6; margin-bottom: 30px; font-size: 15px;">
+        Long before the invasion, the ancient civilizations sealed away The Void Gate. But a secret order's experiment cracked the final seal. It screamed.<br><br>
+        During the semi-finals of The Last Tournament, the sky tore open. The Void brought its Factions to consume the world.<br><br>
+        To save reality, you must survive the invasion, defeat the Epic Bosses, and reach the original Void Gate to seal it once more.
+      </p>
+      <button id="start-prologue-btn" style="padding: 12px 40px; background: transparent; border: 2px solid #fff; color: white; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Fight</button>
+    </div>
+
     <!-- Hero Selection Screen -->
-    <div id="hero-select">
+    <div id="hero-select" style="display: none;">
       <h1 class="shadow-title">Shadow Survivors</h1>
       <p class="shadow-subtitle">The Shadow-Touched</p>
 
