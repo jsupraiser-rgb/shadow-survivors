@@ -743,12 +743,16 @@ function drawPlayer() {
       const fh = sprites.kaelCombo.naturalHeight;
       const pad = 4;
       const sx = cf * fw + pad;
-      const sw = fw - pad * 2;
+      const sw = Math.max(1, fw - pad * 2);
       const drawW = 120, drawH = 140;
       const drawX = x + (player.w - drawW) / 2;
       const drawY = y + player.h - drawH + 2;
+
+      // Full brightness — no dim filters
       ctx.save();
-      if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
+      ctx.globalAlpha = 1;
+      ctx.filter = 'none';
+      if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
       if (player.facing < 0) {
         ctx.translate(drawX + drawW, drawY);
         ctx.scale(-1, 1);
