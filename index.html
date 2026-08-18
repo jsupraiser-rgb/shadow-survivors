@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>Shadow Survivors – Level 1</title>
+  <title>Shadow Survivors</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
+    button, .btn, .hero-card, #start-btn {
+      touch-action: manipulation;
+      pointer-events: auto;
+      cursor: pointer;
+      -webkit-tap-highlight-color: rgba(160,112,255,0.35);
+    }
     body {
       background: #050508;
       color: #ddd;
@@ -26,186 +32,89 @@
       border: 2px solid #222;
       overflow: hidden;
     }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-      background: #0a0a12;
-    }
+    canvas { display: block; width: 100%; height: 100%; background: #0a0a12; }
     #ui {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      right: 8px;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      pointer-events: none;
-      z-index: 20;
-      flex-wrap: wrap;
+      position: absolute; top: 8px; left: 8px; right: 8px;
+      display: none; justify-content: space-between; gap: 6px;
+      pointer-events: none; z-index: 20; flex-wrap: wrap;
     }
     .stat {
       background: rgba(0,0,0,0.75);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      border: 1px solid #333;
-      white-space: nowrap;
+      padding: 5px 10px; border-radius: 6px; font-size: 13px;
+      border: 1px solid #333; white-space: nowrap;
     }
-    #combo-counter {
-      display: none;
-      color: #c9a0ff;
-      border-color: #7a5ab0;
-    }
+    #combo-counter { display: none; color: #c9a0ff; border-color: #7a5ab0; }
     #combo-display {
-      position: absolute;
-      top: 55px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      font-weight: bold;
-      color: #c9a0ff;
-      text-shadow: 0 0 12px #a070ff;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 25;
+      position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
+      font-size: 20px; font-weight: bold; color: #c9a0ff;
+      text-shadow: 0 0 12px #a070ff; pointer-events: none;
+      opacity: 0; transition: opacity 0.2s; z-index: 25;
     }
     #level-name {
-      position: absolute;
-      top: 48px;
-      left: 12px;
-      font-size: 13px;
-      color: #aaa;
-      pointer-events: none;
-      z-index: 20;
+      position: absolute; top: 48px; left: 12px; font-size: 13px; color: #aaa;
+      pointer-events: none; z-index: 20; display: none;
+    }
+    #boss-ui {
+      display: none; position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
+      width: 55%; z-index: 22; pointer-events: none;
+    }
+    #boss-name-ui {
+      text-align: center; color: #ff5555; font-weight: bold; margin-bottom: 4px;
+      text-transform: uppercase; font-size: 12px;
+    }
+    #boss-hp-bar {
+      height: 10px; background: #331111; border-radius: 5px; overflow: hidden; border: 1px solid #662222;
+    }
+    #boss-hp-fill {
+      width: 100%; height: 100%; background: linear-gradient(to right, #800, #f00); transition: width 0.2s;
     }
     #controls {
-      position: absolute;
-      bottom: 12px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 20;
+      position: absolute; bottom: 12px; left: 0; right: 0;
+      display: none; justify-content: space-between; padding: 0 16px;
+      pointer-events: none; z-index: 20;
     }
-    .btn {
-      width: 64px;
-      height: 64px;
-      background: rgba(30,30,50,0.8);
-      border: 2px solid #555;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      color: #ccc;
-      pointer-events: auto;
-    }
-    .btn:active {
-      background: rgba(90,70,140,0.95);
-      border-color: #a070ff;
-    }
-    #joystick-area {
-      width: 110px;
-      height: 110px;
-      position: relative;
-      pointer-events: auto;
-    }
+    #joystick-area { width: 120px; height: 120px; pointer-events: auto; }
     #joystick-base {
-      width: 90px;
-      height: 90px;
-      background: rgba(30,30,50,0.55);
-      border: 2px solid #444;
-      border-radius: 50%;
-      position: absolute;
-      bottom: 0;
-      left: 10px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(40,30,60,0.7); border: 2px solid #555;
+      position: relative; margin-top: 10px;
     }
     #joystick-knob {
-      width: 38px;
-      height: 38px;
-      background: rgba(120,100,180,0.9);
-      border-radius: 50%;
-      position: absolute;
-      top: 26px;
-      left: 26px;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #7a5ab0; position: absolute;
+      left: 50%; top: 50%; transform: translate(-50%,-50%);
+      margin-left: -22px; margin-top: -22px;
     }
-    #right-btns {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
+    #right-btns { display: flex; gap: 12px; align-items: flex-end; pointer-events: auto; }
+    .btn {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(40,30,60,0.85); border: 2px solid #666;
+      display: flex; align-items: center; justify-content: center; font-size: 22px; color: #eee;
     }
+    .btn:active { background: rgba(90,70,140,0.95); border-color: #a070ff; }
     #message {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      text-align: center;
-      padding: 20px;
+      position: absolute; inset: 0; background: rgba(5,5,10,0.94);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 50; text-align: center; padding: 20px;
     }
-    #message h1 {
-      color: #c9a0ff;
-      font-size: 26px;
-      margin-bottom: 10px;
-    }
-    #message p {
-      max-width: 340px;
-      line-height: 1.45;
-      margin-bottom: 6px;
-      font-size: 14px;
-      color: #ccc;
-    }
+    #message h1 { color: #c9a0ff; font-size: 26px; margin-bottom: 8px; }
+    #message p { max-width: 340px; line-height: 1.45; color: #bbb; font-size: 14px; }
     #message button {
-      margin-top: 18px;
-      padding: 12px 28px;
-      background: #5a3a9a;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
+      margin-top: 16px; padding: 12px 28px; background: transparent;
+      border: 2px solid #a070ff; color: #e0d0ff; border-radius: 8px;
+      font-size: 16px; font-weight: 600;
     }
-  
     #hero-select {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin: 12px 0;
-      max-width: 360px;
-      width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin: 14px 0; max-width: 360px; width: 100%;
     }
     .hero-card {
-      background: rgba(20,15,35,0.95);
-      border: 2px solid #444;
-      border-radius: 10px;
-      padding: 8px 6px;
-      cursor: pointer;
-      text-align: center;
-      transition: border-color 0.15s, transform 0.1s;
+      background: rgba(20,15,35,0.95); border: 2px solid #444;
+      border-radius: 10px; padding: 10px 6px; text-align: center;
     }
-    .hero-card.selected {
-      border-color: #a070ff;
-      box-shadow: 0 0 12px #7040c0;
-      transform: scale(1.03);
-    }
+    .hero-card.selected { border-color: #a070ff; box-shadow: 0 0 12px #7040c0; }
     .hero-card .name { font-weight: 700; font-size: 14px; }
     .hero-card .role { font-size: 11px; color: #aaa; margin-top: 2px; }
-    .hero-card.kael { border-color: #6a4cff; }
-    .hero-card.lyra { border-color: #c040ff; }
-    .hero-card.vex { border-color: #ff4422; }
-    .hero-card.nyx { border-color: #4488ff; }
-    .hero-card.kael.selected { border-color: #9b7bff; }
-    .hero-card.lyra.selected { border-color: #e080ff; }
-    .hero-card.vex.selected { border-color: #ff6644; }
-    .hero-card.nyx.selected { border-color: #66aaff; }
-
   </style>
 </head>
 <body>
@@ -214,61 +123,65 @@
 
     <div id="ui">
       <div class="stat">❤️ <span id="hp">100</span></div>
+      <div class="stat" id="level-display">Lv 1</div>
       <div class="stat">💀 <span id="kills">0</span></div>
       <div class="stat">✨ <span id="souls">0</span></div>
       <div class="stat">👊 <span id="weapon-label">Bare Hands</span></div>
+      <div class="stat" id="hero-label">Kael</div>
       <div class="stat" id="combo-counter">
         COMBO <span id="combo-num">0</span>
-        <span id="combo-mult" style="color:#ffcc66; margin-left:4px;"></span>
+        <span id="combo-mult" style="color:#ffcc66;margin-left:4px;"></span>
       </div>
     </div>
 
     <div id="level-name">Level 1 – Dust of Champions</div>
     <div id="combo-display">3-HIT COMBO!</div>
 
+    <div id="boss-ui">
+      <div id="boss-name-ui">Void Knight</div>
+      <div id="boss-hp-bar"><div id="boss-hp-fill"></div></div>
+    </div>
+
     <div id="controls">
       <div id="joystick-area">
-        <div id="joystick-base">
-          <div id="joystick-knob"></div>
-        </div>
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
       </div>
       <div id="right-btns">
         <div class="btn" id="jump-btn">⬆</div>
         <div class="btn" id="attack-btn">👊</div>
-        <div class="btn" id="special-btn">💥</div>
+        <div class="btn" id="special-btn">💨</div>
       </div>
     </div>
 
     <div id="message">
       <h1>Shadow Survivors</h1>
-      <p><strong>Level 1 – Dust of Champions</strong></p>
-      <p>Choose your champion</p>
+      <p><strong>Dust of Champions</strong></p>
+      <p>Choose your champion. Clear Level 1 → Level 2 → Boss.</p>
       <div id="hero-select">
-        <div class="hero-card kael selected" data-hero="kael">
+        <div class="hero-card selected" data-hero="kael">
           <div class="name" style="color:#9b7bff">KAEL</div>
-          <div class="role">Balanced DPS · Martial Arts</div>
+          <div class="role">Balanced · Martial Arts</div>
         </div>
-        <div class="hero-card lyra" data-hero="lyra">
+        <div class="hero-card" data-hero="lyra">
           <div class="name" style="color:#e080ff">LYRA</div>
-          <div class="role">Fast Assassin · Twin Daggers</div>
+          <div class="role">Assassin · Twin Daggers</div>
         </div>
-        <div class="hero-card vex" data-hero="vex">
+        <div class="hero-card" data-hero="vex">
           <div class="name" style="color:#ff6644">VEX</div>
-          <div class="role">Heavy Tank · Gauntlets</div>
+          <div class="role">Tank · Gauntlets</div>
         </div>
-        <div class="hero-card nyx" data-hero="nyx">
+        <div class="hero-card" data-hero="nyx">
           <div class="name" style="color:#66aaff">NYX</div>
           <div class="role">Ranged · Energy Pistols</div>
         </div>
       </div>
-      <p style="margin-top:8px;font-size:12px;color:#aaa">
-        Walk = single direction · Run = double-tap<br>
-        👊 Attack combo · ⬆ Jump · 💥 Special
+      <p style="margin-top:8px;font-size:12px;color:#888">
+        Walk = nudge · Run = full stick / double-tap<br>
+        👊 Attack combo · ⬆ Jump · 💨 Dash
       </p>
-      <button id="start-btn">Start Level 1</button>
+      <button id="start-btn" type="button">Start Game</button>
     </div>
   </div>
-
   <script src="game.js"></script>
 </body>
 </html>
