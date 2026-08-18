@@ -56,68 +56,54 @@ function loadSprites(callback) {
     pending--;
     if (pending <= 0 && callback) callback();
   }
-  function stripWhite(img, cb) {
-    try {
-      const c = document.createElement('canvas');
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
-      const g = c.getContext('2d');
-      g.drawImage(img, 0, 0);
-      const data = g.getImageData(0, 0, c.width, c.height);
-      const d = data.data;
-      for (let i = 0; i < d.length; i += 4) {
-        if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) d[i+3] = 0;
-        else if (d[i] < 28 && d[i+1] < 28 && d[i+2] < 28) d[i+3] = 0;
-      }
-      g.putImageData(data, 0, 0);
-      const out = new Image();
-      out.onload = () => cb(out);
-      out.src = c.toDataURL('image/png');
-    } catch (e) { cb(img); }
+
+  function setupKael(img) {
+    sprites.kael = img;
+    const w = img.naturalWidth || 0;
+    if (w >= 22 && w % 22 === 0) { KAEL_FRAMES = 22; KAEL_FW = w / 22; }
+    else if (w >= 10 && w % 10 === 0) { KAEL_FRAMES = 10; KAEL_FW = w / 10; }
+    else if (w > 0) { KAEL_FRAMES = 10; KAEL_FW = Math.floor(w / 10); }
+    KAEL_FH = img.naturalHeight || 170;
+    console.log('Kael OK', KAEL_FW, KAEL_FH, 'frames', KAEL_FRAMES, 'w', w);
   }
 
   sprites.kael = new Image();
-  sprites.kael.onload = () => {
-    stripWhite(sprites.kael, (cleaned) => {
-      sprites.kael = cleaned;
-      // auto frames: prefer 22 if divides evenly else 10
-      const w = cleaned.naturalWidth;
-      if (w % 22 === 0) { KAEL_FRAMES = 22; KAEL_FW = w / 22; }
-      else if (w % 10 === 0) { KAEL_FRAMES = 10; KAEL_FW = w / 10; }
-      else { KAEL_FRAMES = 10; KAEL_FW = Math.floor(w / 10); }
-      KAEL_FH = cleaned.naturalHeight;
-      console.log('Kael', KAEL_FW, KAEL_FH, KAEL_FRAMES);
-      oneDone();
-    });
+  sprites.kael.crossOrigin = 'anonymous';
+  sprites.kael.onload = function() {
+    setupKael(sprites.kael);
+    oneDone();
   };
-  sprites.kael.onerror = () => oneDone();
-  sprites.kael.src = 'kael_sheet.png';
+  sprites.kael.onerror = function() {
+    console.warn('Kael sheet FAILED');
+    oneDone();
+  };
+  sprites.kael.src = 'kael_sheet.png?v=' + Date.now();
 
   sprites.leech = new Image();
-  sprites.leech.onload = () => {
+  sprites.leech.onload = function() {
     LEECH_FW = Math.floor(sprites.leech.naturalWidth / 5) || 64;
     LEECH_FH = sprites.leech.naturalHeight || 64;
     oneDone();
   };
-  sprites.leech.onerror = () => oneDone();
+  sprites.leech.onerror = function() { oneDone(); };
   sprites.leech.src = 'leech_sheet.png';
 
   sprites.lyra = new Image();
-  sprites.lyra.onload = () => {
+  sprites.lyra.onload = function() {
     const w = sprites.lyra.naturalWidth;
     if (w % 22 === 0) { LYRA_FRAMES = 22; LYRA_FW = w / 22; }
     else if (w % 21 === 0) { LYRA_FRAMES = 21; LYRA_FW = w / 21; }
     else if (w % 10 === 0) { LYRA_FRAMES = 10; LYRA_FW = w / 10; }
-    else { LYRA_FRAMES = 10; LYRA_FW = Math.floor(w / 10); }
+    else { LYRA_FRAMES = 10; LYRA_FW = Math.floor(w / 10) || 128; }
     LYRA_FH = sprites.lyra.naturalHeight;
-    console.log('Lyra', LYRA_FW, LYRA_FH, LYRA_FRAMES);
   };
   sprites.lyra.src = 'lyra_sheet.png';
 
   sprites.kaelCombo = new Image();
-  sprites.kaelCombo.onload = () => {
-    console.log('Kael combo sheet', sprites.kaelCombo.naturalWidth);
+  sprites.kaelCombo.onload = function() {
+    console.log('Kael combo OK', sprites.kaelCombo.naturalWidth);
   };
-  sprites.kaelCombo.src = 'kael_combo_sheet.png';
+  sprites.kaelCombo.src = 'kael_combo_sheet.png?v=' + Date.now();
 }
 
 // ---------- STATE ----------
@@ -247,27 +233,27 @@ const ROOMS = {
     name: 'Level 1 – Dust of Champions',
     width: 2000,
     platforms: [
-      { x: 0, y: 400, w: 2000, h: 40 },
-      { x: 280, y: 320, w: 120, h: 18 },
-      { x: 520, y: 260, w: 100, h: 18 },
-      { x: 750, y: 300, w: 140, h: 18 },
-      { x: 1100, y: 250, w: 120, h: 18 },
-      { x: 1400, y: 320, w: 160, h: 18 },
-      { x: 1650, y: 280, w: 120, h: 18 }
+      { x: 0, y: 340, w: 2000, h: 80 },
+      { x: 280, y: 260, w: 120, h: 18 },
+      { x: 520, y: 200, w: 100, h: 18 },
+      { x: 750, y: 240, w: 140, h: 18 },
+      { x: 1100, y: 190, w: 120, h: 18 },
+      { x: 1400, y: 260, w: 160, h: 18 },
+      { x: 1650, y: 220, w: 120, h: 18 }
     ],
-    exit: { x: 1900, y: 320, w: 50, h: 80 },
-    spawn: { x: 100, y: 300 },
+    exit: { x: 1900, y: 260, w: 50, h: 80 },
+    spawn: { x: 120, y: 200 },
     enemies: () => {
       const list = [];
-      list.push(createLeech(380, 340));
-      list.push(createLeech(500, 340));
-      list.push(createSkeleton(650, 330));
-      list.push(createLeech(900, 340));
-      list.push(createSkeleton(1050, 330));
-      list.push(createLeech(1250, 340));
-      list.push(createSkeleton(1450, 330));
-      list.push(createLeech(1600, 340));
-      list.push(createSkeleton(1750, 330));
+      list.push(createLeech(380, 280));
+      list.push(createLeech(500, 280));
+      list.push(createSkeleton(650, 270));
+      list.push(createLeech(900, 280));
+      list.push(createSkeleton(1050, 270));
+      list.push(createLeech(1250, 280));
+      list.push(createSkeleton(1450, 270));
+      list.push(createLeech(1600, 280));
+      list.push(createSkeleton(1750, 270));
       return list;
     }
   },
@@ -705,26 +691,30 @@ function updateBoss() {
 
 // ---------- DRAW ----------
 function drawHeroStrip(img, frames, fw, fh, x, y) {
-  if (!img || img.naturalWidth < 10) {
+  if (!img || !img.complete || img.naturalWidth < 10) {
     ctx.fillStyle = player.heroColor || '#9b7bff';
     ctx.fillRect(x, y, player.w, player.h);
     return;
   }
-  const frame = Math.max(0, Math.min(frames - 1, player.animFrame));
-  const pad = 6;
-  const sx = frame * fw + pad;
-  const sw = Math.max(1, fw - pad * 2);
+  const nFrames = frames > 0 ? frames : 10;
+  let useFw = fw > 0 ? fw : Math.floor(img.naturalWidth / nFrames);
+  let useFh = fh > 0 ? fh : img.naturalHeight;
+  const frame = Math.max(0, Math.min(nFrames - 1, player.animFrame|0));
+  const pad = 4;
+  const sx = frame * useFw + pad;
+  const sw = Math.max(1, useFw - pad * 2);
   const drawW = 100, drawH = 130;
   const drawX = x + (player.w - drawW) / 2;
   const drawY = y + player.h - drawH + 2;
   ctx.save();
-  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx.globalAlpha = 1;
+  if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.5;
   if (player.facing < 0) {
     ctx.translate(drawX + drawW, drawY);
     ctx.scale(-1, 1);
-    ctx.drawImage(img, sx, 0, sw, fh, 0, 0, drawW, drawH);
+    ctx.drawImage(img, sx, 0, sw, useFh, 0, 0, drawW, drawH);
   } else {
-    ctx.drawImage(img, sx, 0, sw, fh, drawX, drawY, drawW, drawH);
+    ctx.drawImage(img, sx, 0, sw, useFh, drawX, drawY, drawW, drawH);
   }
   ctx.restore();
 }
