@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>Shadow Survivors</title>
+  <title>Shadow Survivors – Level 1</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
     body {
@@ -32,46 +32,12 @@
       height: 100%;
       background: #0a0a12;
     }
-
-    #ui {
-      text-shadow: 0 0 10px rgba(0,0,0,1);
-    }
-    .stat {
-      background: rgba(10,10,20,0.85);
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 0 15px rgba(0,0,0,0.8);
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    #combo-display {
-      text-shadow: 0 0 20px var(--color, #c9a0ff);
-      font-style: italic;
-      transform: translateX(-50%) scale(1.2);
-    }
-    .btn {
-      background: rgba(40,40,60,0.85);
-      border: 2px solid rgba(255,255,255,0.3);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1);
-    }
-    .btn:active {
-      box-shadow: 0 0 20px #a070ff, inset 0 0 20px #a070ff;
-    }
-    #joystick-base {
-      background: rgba(40,40,60,0.7);
-      border: 2px solid rgba(255,255,255,0.2);
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    }
-    #joystick-knob {
-      background: radial-gradient(circle at 30% 30%, #a070ff, #5a3a9a);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-
     #ui {
       position: absolute;
       top: 8px;
       left: 8px;
       right: 8px;
-      display: none; /* Hidden during intro */
+      display: flex;
       justify-content: space-between;
       gap: 6px;
       pointer-events: none;
@@ -95,7 +61,7 @@
       position: absolute;
       top: 55px;
       left: 50%;
-      transform: translateX(-50%); /* overridden above */
+      transform: translateX(-50%);
       font-size: 20px;
       font-weight: bold;
       color: #c9a0ff;
@@ -113,14 +79,13 @@
       color: #aaa;
       pointer-events: none;
       z-index: 20;
-      display: none;
     }
     #controls {
       position: absolute;
       bottom: 12px;
       left: 0;
       right: 0;
-      display: none; /* Hidden during intro */
+      display: flex;
       justify-content: space-between;
       padding: 0 12px;
       pointer-events: none;
@@ -173,133 +138,11 @@
       gap: 10px;
       align-items: flex-end;
     }
-
-    /* --- HERO SELECTION (Shadow Fight 3 Vibe) --- */
-    #hero-select {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, #1a1a2e 0%, #050508 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      padding: 20px;
-    }
-    .shadow-title {
-      color: #fff;
-      font-size: 36px;
-      text-transform: uppercase;
-      letter-spacing: 6px;
-      margin-bottom: 5px;
-      text-shadow: 0 0 20px rgba(255,255,255,0.5);
-    }
-    .shadow-subtitle {
-      color: #888;
-      font-size: 14px;
-      letter-spacing: 3px;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-    #hero-cards {
-      display: flex;
-      gap: 15px;
-      max-width: 800px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .hero-card {
-      width: 140px;
-      height: 200px;
-      background: #111;
-      border: 2px solid #333;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      padding-bottom: 20px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .hero-card:hover, .hero-card.selected {
-      border-color: #fff;
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
-    .hero-card h3 {
-      font-size: 18px;
-      z-index: 2;
-      color: #eee;
-    }
-    .hero-card p {
-      font-size: 12px;
-      color: #aaa;
-      z-index: 2;
-      margin-top: 4px;
-    }
-    .hero-silhouette {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%); /* overridden above */
-      width: 80px;
-      height: 120px;
-      background: #000;
-      mask-image: url('kael_sheet.png');
-      -webkit-mask-image: url('kael_sheet.png');
-      mask-position: -20px 0;
-      -webkit-mask-position: -20px 0;
-      mask-size: 720px 480px;
-      -webkit-mask-size: 720px 480px;
-      z-index: 1;
-      opacity: 0.8;
-      transition: all 0.3s ease;
-    }
-    .hero-card:hover .hero-silhouette, .hero-card.selected .hero-silhouette {
-      opacity: 1;
-    }
-    .glow-fx {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 60%;
-      background: linear-gradient(to top, var(--color), transparent);
-      opacity: 0.3;
-      z-index: 0;
-    }
-    #start-game-btn {
-      margin-top: 15px;
-      padding: 12px 40px;
-      background: transparent;
-      border: 2px solid #fff;
-      color: white;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      border-radius: 4px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s ease;
-    }
-    #start-game-btn.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #start-game-btn:hover {
-      background: #fff;
-      color: #000;
-    }
-
     #message {
       position: absolute;
       inset: 0;
       background: rgba(0,0,0,0.9);
-      display: none;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -330,46 +173,57 @@
       font-weight: 600;
     }
 
-    .intro-overlay {
-      position: absolute;
-      inset: 0;
-      background: #000;
-      z-index: 15;
-      pointer-events: none;
-      transition: opacity 3s ease-in-out;
+    #hero-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+      max-width: 360px;
+      width: 100%;
     }
+    .hero-card {
+      background: rgba(20,15,35,0.95);
+      border: 2px solid #444;
+      border-radius: 10px;
+      padding: 8px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .hero-card.selected {
+      border-color: #a070ff;
+      box-shadow: 0 0 12px #7040c0;
+      transform: scale(1.03);
+    }
+    .hero-card .name { font-weight: 700; font-size: 14px; }
+    .hero-card .role { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .hero-card.kael { border-color: #6a4cff; }
+    .hero-card.lyra { border-color: #c040ff; }
+    .hero-card.vex { border-color: #ff4422; }
+    .hero-card.nyx { border-color: #4488ff; }
+    .hero-card.kael.selected { border-color: #9b7bff; }
+    .hero-card.lyra.selected { border-color: #e080ff; }
+    .hero-card.vex.selected { border-color: #ff6644; }
+    .hero-card.nyx.selected { border-color: #66aaff; }
+
   </style>
 </head>
 <body>
   <div id="game-container">
     <canvas id="game"></canvas>
 
-    <!-- Intro Black Overlay for fade-in effect -->
-    <div id="intro-overlay" class="intro-overlay" style="display: none;"></div>
-
     <div id="ui">
-
       <div class="stat">❤️ <span id="hp">100</span></div>
-      <div class="stat" id="level-display" style="color: #66ccff; border-color: #4488cc;">Lvl 1 [0/100 XP]</div>
-
       <div class="stat">💀 <span id="kills">0</span></div>
       <div class="stat">✨ <span id="souls">0</span></div>
-      <div class="stat" id="weapon-display">👊 Bare Hands</div>
+      <div class="stat">👊 <span id="weapon-label">Bare Hands</span></div>
       <div class="stat" id="combo-counter">
         COMBO <span id="combo-num">0</span>
         <span id="combo-mult" style="color:#ffcc66; margin-left:4px;"></span>
       </div>
     </div>
 
-
-    <div id="boss-ui" style="display: none; position: absolute; top: 80px; left: 50%; transform: translateX(-50%); /* overridden above */ width: 60%; z-index: 20;">
-      <div id="boss-name-ui" style="text-align: center; color: #ff5555; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; text-shadow: 0 0 5px red;">Void Knight</div>
-      <div style="width: 100%; height: 12px; background: #222; border: 2px solid #555; border-radius: 6px; overflow: hidden;">
-        <div id="boss-hp-fill" style="width: 100%; height: 100%; background: linear-gradient(to right, #800, #f00); transition: width 0.2s;"></div>
-      </div>
-    </div>
-
-    <div id="level-name">Level 1 – The Shadow Ruins</div>
+    <div id="level-name">Level 1 – Dust of Champions</div>
     <div id="combo-display">3-HIT COMBO!</div>
 
     <div id="controls">
@@ -380,64 +234,38 @@
       </div>
       <div id="right-btns">
         <div class="btn" id="jump-btn">⬆</div>
-        <div class="btn" id="attack-btn">⚔️</div>
+        <div class="btn" id="attack-btn">👊</div>
         <div class="btn" id="special-btn">💥</div>
       </div>
     </div>
 
-    <!-- Main Menu / Prologue Screen -->
-    <div id="main-menu" style="position: absolute; inset: 0; background: #050508; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 60; text-align: center; padding: 20px;">
-      <h1 class="shadow-title">Shadow Survivors</h1>
-      <h2 style="color: #a070ff; margin-bottom: 20px; font-weight: 300; letter-spacing: 2px;">The Last Tournament</h2>
-      <p style="color: #aaa; max-width: 650px; line-height: 1.6; margin-bottom: 30px; font-size: 15px;">
-        Long before the invasion, the ancient civilizations sealed away The Void Gate. But a secret order's experiment cracked the final seal. It screamed.<br><br>
-        During the semi-finals of The Last Tournament, the sky tore open. The Void brought its Factions to consume the world.<br><br>
-        To save reality, you must survive the invasion, defeat the Epic Bosses, and reach the original Void Gate to seal it once more.
-      </p>
-      <button id="start-prologue-btn" style="padding: 12px 40px; background: transparent; border: 2px solid #fff; color: white; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Fight</button>
-    </div>
-
-    <!-- Hero Selection Screen -->
-    <div id="hero-select" style="display: none;">
-      <h1 class="shadow-title">Shadow Survivors</h1>
-      <p class="shadow-subtitle">The Shadow-Touched</p>
-
-
-      <div id="hero-cards">
-        <div class="hero-card" data-hero="kael" style="--color: #a070ff;">
-          <div class="hero-silhouette"></div>
-          <div class="glow-fx"></div>
-          <h3>Kael</h3>
-          <p>The Cursed Swordsman</p>
+    <div id="message">
+      <h1>Shadow Survivors</h1>
+      <p><strong>Level 1 – Dust of Champions</strong></p>
+      <p>Choose your champion</p>
+      <div id="hero-select">
+        <div class="hero-card kael selected" data-hero="kael">
+          <div class="name" style="color:#9b7bff">KAEL</div>
+          <div class="role">Balanced DPS · Martial Arts</div>
         </div>
-        <div class="hero-card" data-hero="lyra" style="--color: #40ff80;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -140px 0; mask-position: -140px 0;"></div>
-          <div class="glow-fx"></div>
-          <h3>Lyra</h3>
-          <p>The Last Assassin</p>
+        <div class="hero-card lyra" data-hero="lyra">
+          <div class="name" style="color:#e080ff">LYRA</div>
+          <div class="role">Fast Assassin · Twin Daggers</div>
         </div>
-        <div class="hero-card" data-hero="vex" style="--color: #ff8040;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -260px 0; mask-position: -260px 0;"></div>
-          <div class="glow-fx"></div>
-          <h3>Vex</h3>
-          <p>The Unbreakable War-Chief</p>
+        <div class="hero-card vex" data-hero="vex">
+          <div class="name" style="color:#ff6644">VEX</div>
+          <div class="role">Heavy Tank · Gauntlets</div>
         </div>
-        <div class="hero-card" data-hero="nyx" style="--color: #40c0ff;">
-          <div class="hero-silhouette" style="-webkit-mask-position: -380px 0; mask-position: -380px 0;"></div>
-          <div class="glow-fx"></div>
-          <h3>Nyx</h3>
-          <p>The Void-Touched Researcher</p>
+        <div class="hero-card nyx" data-hero="nyx">
+          <div class="name" style="color:#66aaff">NYX</div>
+          <div class="role">Ranged · Energy Pistols</div>
         </div>
       </div>
-
-      <button id="start-game-btn">Enter the Shadows</button>
-    </div>
-
-    <div id="message">
-      <h1 id="msg-title">You Fell</h1>
-      <p id="msg-desc">Another Shadow-Touched lost to the Rift.</p>
-      <p>Kills: <span id="msg-kills">0</span> | Souls: <span id="msg-souls">0</span></p>
-      <button id="restart-btn">Try Again</button>
+      <p style="margin-top:8px;font-size:12px;color:#aaa">
+        Walk = single direction · Run = double-tap<br>
+        👊 Attack combo · ⬆ Jump · 💥 Special
+      </p>
+      <button id="start-btn">Start Level 1</button>
     </div>
   </div>
 
