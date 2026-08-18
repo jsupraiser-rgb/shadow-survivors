@@ -112,6 +112,12 @@ function loadSprites(callback) {
     console.log('Lyra', LYRA_FW, LYRA_FH, LYRA_FRAMES);
   };
   sprites.lyra.src = 'lyra_sheet.png';
+
+  sprites.kaelCombo = new Image();
+  sprites.kaelCombo.onload = () => {
+    console.log('Kael combo sheet', sprites.kaelCombo.naturalWidth);
+  };
+  sprites.kaelCombo.src = 'kael_combo_sheet.png';
 }
 
 // ---------- STATE ----------
@@ -135,10 +141,10 @@ const player = {
 };
 
 const ATTACKS = {
-  jab:      { damage: 10, duration: 12, range: 70 },
-  cross:    { damage: 14, duration: 14, range: 78 },
-  spinKick: { damage: 20, duration: 18, range: 88 },
-  heavy:    { damage: 32, duration: 22, range: 95 }
+  jab:      { damage: 11, duration: 11, range: 72 },   // quick Void jab
+  cross:    { damage: 16, duration: 14, range: 82 },   // drives enemy back
+  spinKick: { damage: 24, duration: 18, range: 96 },  // clears space / stun
+  heavy:    { damage: 34, duration: 22, range: 100 }
 };
 const COMBO_WINDOW = 55;
 const GRAVITY = 0.55;
@@ -727,8 +733,36 @@ function drawPlayer() {
   const x = player.x, y = player.y;
   if (player.heroId === 'lyra' && sprites.lyra && sprites.lyra.naturalWidth > 10) {
     drawHeroStrip(sprites.lyra, LYRA_FRAMES, LYRA_FW, LYRA_FH, x, y);
-  } else if (player.heroId === 'kael' && sprites.kael && sprites.kael.naturalWidth > 10) {
-    drawHeroStrip(sprites.kael, KAEL_FRAMES, KAEL_FW, KAEL_FH, x, y);
+  } else if (player.heroId === 'kael') {
+    // Use official 3-hit combo art when attacking
+    if (player.attacking && sprites.kaelCombo && sprites.kaelCombo.naturalWidth > 10) {
+      let cf = 0;
+      if (player.attackType === 2) cf = 1;
+      else if (player.attackType === 3 || player.attackType === 4) cf = 2;
+      const fw = Math.floor(sprites.kaelCombo.naturalWidth / 3);
+      const fh = sprites.kaelCombo.naturalHeight;
+      const pad = 4;
+      const sx = cf * fw + pad;
+      const sw = fw - pad * 2;
+      const drawW = 120, drawH = 140;
+      const drawX = x + (player.w - drawW) / 2;
+      const drawY = y + player.h - drawH + 2;
+      ctx.save();
+      if (player.invuln > 0 && Math.floor(player.invuln / 3) % 2 === 0) ctx.globalAlpha = 0.45;
+      if (player.facing < 0) {
+        ctx.translate(drawX + drawW, drawY);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprites.kaelCombo, sx, 0, sw, fh, 0, 0, drawW, drawH);
+      } else {
+        ctx.drawImage(sprites.kaelCombo, sx, 0, sw, fh, drawX, drawY, drawW, drawH);
+      }
+      ctx.restore();
+    } else if (sprites.kael && sprites.kael.naturalWidth > 10) {
+      drawHeroStrip(sprites.kael, KAEL_FRAMES, KAEL_FW, KAEL_FH, x, y);
+    } else {
+      ctx.fillStyle = '#9b7bff';
+      ctx.fillRect(x, y, player.w, player.h);
+    }
   } else {
     // placeholder for Vex / Nyx
     ctx.save();
